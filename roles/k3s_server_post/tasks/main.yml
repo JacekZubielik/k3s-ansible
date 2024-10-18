@@ -18,3 +18,6 @@
   file:
     path: /tmp/k3s
     state: absent
+
+# - name: Install latest qemu-guest-agent
+#   include_tasks: qemu.yaml

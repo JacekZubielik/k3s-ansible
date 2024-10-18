@@ -1,0 +1,14 @@
+---
+- name: install qemu-guest-agent
+  apt:
+    name: qemu-guest-agent
+    state: present
+    update_cache: true
+  become: true
+
+- name: Start the systemd service for qemu-guest-agent if it is not started
+  become: yes
+  systemd:
+    name: qemu-guest-agent
+    enabled: yes
+    state: started

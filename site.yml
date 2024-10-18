@@ -66,3 +66,10 @@
         dest: ./kubeconfig
         flat: true
       when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
+
+- name: Longhorn utils
+  hosts: master #storage_servers
+  environment: "{{ proxy_env | default({}) }}"
+  roles:
+    - role: longhorn_util
+      become: true

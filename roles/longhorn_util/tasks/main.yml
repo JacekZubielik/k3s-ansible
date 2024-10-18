@@ -1,0 +1,17 @@
+---
+- name: Install latest qemu-guest-agent
+  include_tasks: qemu.yaml
+
+# - name: Format disks for storage before installing Longhorn
+#   include_tasks: format-disks.yaml
+#   tags: longhorn
+#   when: longhorn_disk_format is defined
+
+- name: Prepare storage for Longhorn
+  include_tasks: prepare-for-longhorn.yaml
+  tags: longhorn
+
+- name: Disable swap memory
+  include_tasks: disable_swap.yml
+
+

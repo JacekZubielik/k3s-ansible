@@ -1,0 +1,74 @@
+---
+- name: Prepare agents for Longhorn
+  tags: longhorn
+  block:
+  - name: Install necessary packages required by Longhorn
+    become: yes
+    apt:
+      pkg:
+      - jq
+      - open-iscsi
+      - nfs-common
+      state: present
+
+  - name: Start the systemd service for iscsid if it is not started
+    become: yes
+    systemd:
+      name: iscsid
+      enabled: yes
+      state: started
+
+  - name: Start the systemd service for nfs-common if it is not started
+    become: yes
+    systemd:
+      name: nfs-common
+      enabled: yes
+      state: started
+
+- name: Verify prerequisites for Longhorn and label storage nodes
+  tags: longhorn
+  block:
+  - name: Run the preconfig script
+    become: yes
+    shell: curl -sSfL https://raw.githubusercontent.com/longhorn/longhorn/v1.7.1/scripts/environment_check.sh | bash
+    register: check
+
+  - name: Print output from check
+    debug: msg="{{ check.stdout }}"
+
+  # Label the nodes to ensure Longhorn volumes are only placed on disks of the storage nodes:
+  # https://longhorn.io/kb/tip-only-use-storage-on-a-set-of-nodes/#tell-longhorn-to-create-a-default-disk-on-a-specific-set-of-nodes
+
+  # - name: Apply label "node.longhorn.io/create-default-disk=true" on storage nodes in Kubernetes
+  #   become: yes
+  #   command: kubectl label nodes --overwrite {{ hostvars[item].node_name }} node.longhorn.io/create-default-disk='true'
+  #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Apply label "node.longhorn.io/create-default-disk=config" on storage nodes in Kubernetes
+    become: yes
+    command: kubectl label nodes --overwrite {{ hostvars[item].node_name }} node.longhorn.io/create-default-disk=config
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Apply annotation "node.longhorn.io/default-node-tags='["fast","storage"]'" on storage nodes in Kubernetes
+    become: yes
+    command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }} node.longhorn.io/default-node-tags='["fast","storage"]'
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Apply annotation "node.longhorn.io/config-node-tags='["fast","storage"]'" on storage nodes in Kubernetes
+    become: yes
+    command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }} node.longhorn.io/config-node-tags='["fast","storage"]'
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Apply label "storage=longhorn" on storage nodes in Kubernetes
+    become: yes
+    command: kubectl label nodes --overwrite {{ hostvars[item].node_name }} storage='longhorn'
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Apply annotation "node.longhorn.io/default-disks-config for "data" and "database" on storage nodes in Kubernetes
+    become: yes
+    # command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }} node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data/","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]},{"name":"database","path":"/mnt/database/","allowScheduling":true,"storageReserved":4294967296,"tags":["database","fast"]}]'
+    command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }} node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]'
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Remove the default flag from the local-provisioner
+    command: kubectl patch storageclass local-path -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
