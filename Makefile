@@ -2,10 +2,10 @@ all:
 
 .PHONY:deploy-all deploy kubeconfig reboot shutdown help
 
-deploy-all:deploy kubeconfig help ## Deploy dev-k3s.cluster and copy kube-config
+deploy-all:deploy kubeconfig help ## Deploy prod-k3s.cluster and copy kube-config
 
-deploy: ## Deploy dev-k3s.cluster.
-	@echo "Deploy dev-k3s.cluster ..."
+deploy: ## Deploy prod-k3s.cluster.
+	@echo "Deploy prod-k3s.cluster ..."
 	@ansible-playbook site.yml
 
 kubeconfig: ## Copy 'kubeconfig'.
@@ -13,12 +13,12 @@ kubeconfig: ## Copy 'kubeconfig'.
 	@scp vagrant@192.168.40.200:~/.kube/config ~/.kube/config
 	@kubectl get nodes --show-kind
 
-reboot: ## Reboot dev-k3s.cluster.
-	@echo "\nReboot dev-k3s.cluster ..."
+reboot: ## Reboot prod-k3s.cluster.
+	@echo "\nReboot prod-k3s.cluster ..."
 	@ansible-playbook reboot.yml
 
-shutdown: ## Shutdown dev-k3s.cluster.
-	@echo "\nShutdown dev-k3s.cluster ..."
+shutdown: ## Shutdown prod-k3s.cluster.
+	@echo "\nShutdown prod-k3s.cluster ..."
 	@ansible-playbook reset.yml
 
 help: ## Display this help.

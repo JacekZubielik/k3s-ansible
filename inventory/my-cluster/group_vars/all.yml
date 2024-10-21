@@ -1,5 +1,5 @@
 ---
-k3s_version: v1.30.2+k3s2 # v1.29.7+k3s1
+k3s_version: v1.29.7+k3s1 # v1.30.2+k3s2 #v1.30.2+k3s2 # v1.29.7+k3s1
 # this is the user that has ssh access to these machines
 ansible_user: vagrant
 systemd_dir: /etc/systemd/system
@@ -34,8 +34,20 @@ cilium_bgp_peer_asn: "64512"
 cilium_bgp_peer_address: "192.168.40.1"
 cilium_bgp_lb_cidr: "192.168.41.0/24"   # cidr for cilium loadbalancer ipam
 
+# enable kube-vip ARP broadcasts
+kube_vip_arp: true
+
+# enable kube-vip BGP peering
+kube_vip_bgp: false
+
+# bgp parameters for kube-vip
+kube_vip_bgp_routerid: "127.0.0.1"  # Defines the router ID for the BGP server
+kube_vip_bgp_as: "64513"  # Defines the AS for the BGP server
+kube_vip_bgp_peeraddress: "192.168.40.1"  # Defines the address for the BGP peer
+kube_vip_bgp_peeras: "64512"  # Defines the AS for the BGP peer
+
 # apiserver_endpoint is virtual ip-address which will be configured on each master
-apiserver_endpoint: "192.168.40.130"
+apiserver_endpoint: "192.168.40.200"
 
 # k3s_token is required  masters can talk together securely
 # this token should be alpha numeric only
@@ -87,7 +99,7 @@ extra_agent_args: >-
   {{ extra_args }}
 
 # image tag for kube-vip
-kube_vip_tag_version: "v0.8.2"
+kube_vip_tag_version: v0.8.2
 
 # tag for kube-vip-cloud-provider manifest
 kube_vip_cloud_provider_tag_version: "main"
@@ -97,10 +109,10 @@ kube_vip_cloud_provider_tag_version: "main"
 kube_vip_lb_ip_range: "192.168.40.180-192.168.40.199"
 
 # metallb type frr or native
-metal_lb_type: "native"
+metal_lb_type: native
 
 # metallb mode layer2 or bgp
-metal_lb_mode: "layer2"
+metal_lb_mode: layer2
 
 # bgp options
 # metal_lb_bgp_my_asn: "64513"
@@ -108,11 +120,11 @@ metal_lb_mode: "layer2"
 # metal_lb_bgp_peer_address: "192.168.40.1"
 
 # image tag for metal lb
-metal_lb_speaker_tag_version: "v0.14.8"
-metal_lb_controller_tag_version: "v0.14.8"
+metal_lb_speaker_tag_version: v0.14.8
+metal_lb_controller_tag_version: v0.14.8
 
 # metallb ip range for load balancer
-metal_lb_ip_range: "192.168.40.180-192.168.40.199"
+metal_lb_ip_range: 192.168.40.180-192.168.40.199
 
 # Only enable if your nodes are proxmox LXC nodes, make sure to configure your proxmox nodes
 # in your hosts.ini file.

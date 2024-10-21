@@ -8,6 +8,20 @@
         msg: >
           "Ansible is out of date. See here for more info: https://docs.technotim.live/posts/ansible-automation/"
 
+- name: Update and upgrade Debian packages
+  hosts: k3s_cluster
+  environment: "{{ proxy_env | default({}) }}"
+  roles:
+    - role: packages_debian
+      become: true
+
+- name: Longhorn utils
+  hosts: storage_servers # k3s_cluster
+  environment: "{{ proxy_env | default({}) }}"
+  roles:
+    - role: longhorn_util
+      become: true
+
 - name: Prepare Proxmox cluster
   hosts: proxmox
   gather_facts: true
@@ -67,9 +81,9 @@
         flat: true
       when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
 
-- name: Longhorn utils
-  hosts: master #storage_servers
+- name: Longhorn labels and annotations
+  hosts: master
   environment: "{{ proxy_env | default({}) }}"
   roles:
-    - role: longhorn_util
+    - role: longhorn_labels
       become: true

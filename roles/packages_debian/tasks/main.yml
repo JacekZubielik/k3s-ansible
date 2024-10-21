@@ -1,0 +1,6 @@
+---
+- name: Disable swap memory
+  include_tasks: disable_swap.yml
+
+- name: Update and upgrade Debian packages
+  include_tasks: packages.yaml

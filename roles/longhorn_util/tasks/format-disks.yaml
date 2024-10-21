@@ -1,29 +1,68 @@
 ---
-- name: Format disks for storage before installing Longhorn
+- name: Create a partition on a disk
   tags: longhorn
   block:
-  - name: Partition the disk into a single large partition filling the disk
+  - name: Create single large partition filling the disk
     become: yes
     parted:
-      device: "{{ device }}"
+      device: /dev/sdb
       number: 1
       state: present
       part_start: "0%"
       part_end: "100%"
       unit: GB
 
-  - name: Create filesystem on new partition
+  - name: Create filesystem on new partition before installing Longhorn
     become: yes
     filesystem:
       fstype: ext4
-      dev: "{{ partition }}"
+      dev: /dev/sdb1
+      opts: -L data
+      force: true
+      state: present
 
-  - name: Mount drive on {{ mount_point }}
+  - name: Verify filesystem label
+    command: lsblk -o NAME,LABEL
+    register: result
+
+  - debug:
+      var: result.stdout_lines
+
+  - name: Add entry to /etc/fstab for LABEL=data
     become: yes
-    mount:
-      src: "{{ partition }}"
-      path: "{{ mount_point }}"
-      fstype: ext4
-      state: mounted
-      boot: yes
-      backup: yes
+    lineinfile:
+      path: /etc/fstab
+      line: 'LABEL=data /mnt/data ext4 noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min 0 2'
+      state: present
+
+  - name: Reload systemd to apply fstab changes
+    become: yes
+    command: systemctl daemon-reload
+
+  - name: Create directory /mnt/data
+    become: yes
+    file:
+      path: /mnt/data
+      state: directory
+      mode: '0777'
+      owner: nobody
+      group: nogroup
+
+  - name: Set permissions for /mnt/data
+    become: yes
+    file:
+      path: /mnt/data
+      mode: '0777'
+
+  - name: Mount all filesystems defined in /etc/fstab
+    become: yes
+    command: mount -a
+
+  - name: Verify mounted filesystems
+    become: yes
+    command: df -h
+    register: df_output
+
+  - name: Display mounted filesystems
+    debug:
+      msg: "{{ df_output.stdout }}"
