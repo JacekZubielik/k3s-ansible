@@ -15,12 +15,12 @@
     - role: packages_debian
       become: true
 
-- name: Longhorn utils
-  hosts: storage_servers # k3s_cluster
-  environment: "{{ proxy_env | default({}) }}"
-  roles:
-    - role: longhorn_util
-      become: true
+# - name: Longhorn utils
+#   hosts: storage_servers
+#   environment: "{{ proxy_env | default({}) }}"
+#   roles:
+#     - role: longhorn_util
+#       become: true
 
 - name: Prepare Proxmox cluster
   hosts: proxmox

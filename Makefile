@@ -10,7 +10,7 @@ deploy: ## Deploy prod-k3s.cluster.
 
 kubeconfig: ## Copy 'kubeconfig'.
 	@echo "\nCopy kubeconfig to ~/.kube/ ...\n"
-	@scp vagrant@192.168.40.200:~/.kube/config ~/.kube/config
+	@scp ansible@192.168.40.200:~/.kube/config ~/.kube/config
 	@kubectl get nodes --show-kind
 
 reboot: ## Reboot prod-k3s.cluster.

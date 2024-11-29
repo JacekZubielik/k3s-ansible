@@ -1,8 +1,4 @@
 ---
 - name: Test for Longhorn
-  include_tasks: test-longhorn.yaml
+  include_tasks: longhorn-labels.yaml
   tags: longhorn
-
-
-
-

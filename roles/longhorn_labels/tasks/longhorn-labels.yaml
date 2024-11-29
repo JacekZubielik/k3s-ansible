@@ -1,0 +1,51 @@
+---
+- name: Verify prerequisites for Longhorn and label storage nodes
+  tags: longhorn
+  block:
+  - name: Apply label "node.longhorn.io/create-default-disk=config" on storage nodes
+      in Kubernetes
+    command: kubectl label nodes --overwrite {{ hostvars[item].node_name }}
+      node.longhorn.io/create-default-disk=config
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Apply annotation "node.longhorn.io/default-node-tags='["fast","storage"]'"
+      on storage nodes in Kubernetes
+    command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }}
+      node.longhorn.io/default-node-tags='["fast","storage"]'
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Apply annotation "node.longhorn.io/config-node-tags='["fast","storage"]'"
+      on storage nodes in Kubernetes
+    command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }}
+      node.longhorn.io/config-node-tags='["fast","storage"]'
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Apply label "storage=longhorn" on storage nodes in Kubernetes
+    command: kubectl label nodes --overwrite {{ hostvars[item].node_name }}
+      storage='longhorn'
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Apply annotation "node.longhorn.io/default-disks-config for "data" and
+      "database" on storage nodes in Kubernetes
+    # command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }} node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data/","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]},{"name":"database","path":"/mnt/database/","allowScheduling":true,"storageReserved":4294967296,"tags":["database","fast"]}]'
+    command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }}
+      node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]'
+    loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
+  - name: Remove the default flag from the local-provisioner
+    command: kubectl patch storageclass local-path -p
+      '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+
+  - name: Run the preconfig script
+    shell: curl -sSfL
+      https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/scripts/environment_check.sh
+      | bash
+    register: check
+
+  - name: Print output from check
+    debug: msg="{{ check.stdout }}"
+
+  - name: Apply label "node-role.kubernetes.io/worker='worker" on nodes in Kubernetes
+    command: kubectl label nodes --overwrite {{ hostvars[item].node_name }}
+      node-role.kubernetes.io/worker='worker'
+    loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
