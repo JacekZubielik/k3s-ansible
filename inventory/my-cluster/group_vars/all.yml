@@ -2,8 +2,6 @@
 k3s_version: v1.30.2+k3s2 # v1.29.7+k3s1 # v1.30.2+k3s2 #v1.30.2+k3s2 # v1.29.7+k3s1
 # this is the user that has ssh access to these machines
 ansible_user: ansible
-# ansible_ssh_pass: ansible
-
 systemd_dir: /etc/systemd/system
 system_timezone: CET
 
@@ -63,8 +61,8 @@ k3s_master_taint: "{{ true if groups['node'] | default([]) | length >= 1 else fa
 
 # these arguments are recommended for servers as well as agents:
 extra_args: >-
-  {{ '--flannel-iface=' + flannel_iface if calico_iface is not defined and
-  cilium_iface is not defined else '' }} --node-ip={{ k3s_node_ip }}
+  {{ '--flannel-iface=' + flannel_iface if calico_iface is not defined and cilium_iface is not defined else '' }}
+  --node-ip={{ k3s_node_ip }}
 
 # change these to your liking, the only required are: --disable servicelb, --tls-san {{ apiserver_endpoint }}
 # the contents of the if block is also required if using calico or cilium
@@ -72,27 +70,25 @@ extra_server_args: >-
   {{ extra_args }}
   {{ '--node-taint node-role.kubernetes.io/master=true:NoSchedule' if k3s_master_taint else '' }}
   {% if calico_iface is defined or cilium_iface is defined %}
-  --cluster-cidr={{ cluster_cidr | default('10.52.0.0/16') }} {% endif %}
+  --flannel-backend=none
+  --disable-network-policy
+  --cluster-cidr={{ cluster_cidr | default('10.52.0.0/16') }}
+  {% endif %}
+  --tls-san {{ apiserver_endpoint }}
   --disable servicelb
   --disable traefik
-  --disable-network-policy
-  --etcd-expose-metrics true
-  --flannel-backend=none
-  --no-deploy servicelb
-  --no-deploy traefik
-  --tls-san {{ apiserver_endpoint }}
-  # --feature-gates="...,PersistentVolumeLastPhaseTransitionTime=true"
-  # --kube-controller-arg node-monitor-grace-period=20s
-  # --write-kubeconfig-mode 644
-  # --kube-apiserver-arg default-not-ready-toleration-seconds=30
-  # --kube-apiserver-arg default-unreachable-toleration-seconds=30
-  # --kube-controller-arg node-monitor-period=20s
-  # --kube-controller-manager-arg bind-address=0.0.0.0
-  # --kube-proxy-arg metrics-bind-address=0.0.0.0
-  # --kube-scheduler-arg bind-address=0.0.0.0
-  # --kubelet-arg containerd=/run/k3s/containerd/containerd.sock
-  # --kubelet-arg node-status-update-frequency=5s
 
+# --feature-gates="...,PersistentVolumeLastPhaseTransitionTime=true"
+# --kube-controller-arg node-monitor-grace-period=20s
+# --write-kubeconfig-mode 644
+# --kube-apiserver-arg default-not-ready-toleration-seconds=30
+# --kube-apiserver-arg default-unreachable-toleration-seconds=30
+# --kube-controller-arg node-monitor-period=20s
+# --kube-controller-manager-arg bind-address=0.0.0.0
+# --kube-proxy-arg metrics-bind-address=0.0.0.0
+# --kube-scheduler-arg bind-address=0.0.0.0
+# --kubelet-arg containerd=/run/k3s/containerd/containerd.sock
+# --kubelet-arg node-status-update-frequency=5s
 
 extra_agent_args: >-
   {{ extra_args }}
