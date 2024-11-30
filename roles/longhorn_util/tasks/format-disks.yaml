@@ -4,7 +4,7 @@
   block:
   - name: Create single large partition filling the disk
     parted:
-      device: /dev/sdb
+      device: /dev/vda
       number: 1
       state: present
       part_start: "0%"
@@ -14,7 +14,7 @@
   - name: Create filesystem on new partition before installing Longhorn
     filesystem:
       fstype: ext4
-      dev: /dev/sdb1
+      dev: /dev/vda1
       opts: -L data
       force: true
       state: present
