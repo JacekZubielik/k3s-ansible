@@ -13,6 +13,12 @@
       dest: /etc/hosts
       mode: '0644'
 
+  - name: Ensure /etc/apt/apt.conf.d/00aptproxy exists with correct content
+    template:
+      src: apt-cacher.conf.j2
+      dest: /etc/apt/apt.conf.d/00aptproxy
+      mode: '0644'
+
   - name: Ensure non-free repository is enabled
     lineinfile:
       path: /etc/apt/sources.list
