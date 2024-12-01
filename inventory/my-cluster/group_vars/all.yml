@@ -1,5 +1,5 @@
 ---
-k3s_version: v1.30.2+k3s2 # v1.29.7+k3s1 # v1.30.2+k3s2 #v1.30.2+k3s2 # v1.29.7+k3s1
+k3s_version: v1.30.2+k3s2
 # this is the user that has ssh access to these machines
 ansible_user: ansible
 systemd_dir: /etc/systemd/system
@@ -139,7 +139,9 @@ proxmox_lxc_ct_ids:
 - 101
 - 102
 - 103
-
+- 104
+- 105
+- 106
 # Only enable this if you have set up your own container registry to act as a mirror / pull-through cache
 # (harbor / nexus / docker's official registry / etc).
 # Can be beneficial for larger dev/test environments (for example if you're getting rate limited by docker hub),

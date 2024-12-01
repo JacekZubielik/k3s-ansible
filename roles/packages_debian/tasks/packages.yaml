@@ -1,5 +1,5 @@
 ---
-- name: Update and upgrade Debian packages, Install non-free firmware and Intel GPU tools
+- name: Update and upgrade Debian packages, Install non-free firmware, Intel GPU tools and other tools.
   block:
   - name: Ensure multipath.conf exists with correct content
     template:
