@@ -4,3 +4,6 @@ collections:
   - name: community.general
   - name: ansible.posix
   - name: kubernetes.core
+  - name: https://github.com/JacekZubielik/k3s-ansible.git
+    type: git
+    version: dev-jz
