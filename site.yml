@@ -19,7 +19,7 @@
   hosts: storage_servers
   environment: "{{ proxy_env | default({}) }}"
   roles:
-    - role: longhorn_util
+    - role: longhorn_utils
       become: true
 
 - name: Prepare Proxmox cluster
