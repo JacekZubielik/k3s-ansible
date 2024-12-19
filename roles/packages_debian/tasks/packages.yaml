@@ -33,6 +33,7 @@
   - name: Install required packages
     apt:
       pkg:
+      - dnsutils
       - jq
       - open-iscsi
       - nfs-common
