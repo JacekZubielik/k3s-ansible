@@ -33,11 +33,11 @@
   - name: Install required packages
     apt:
       pkg:
-      - cryptsetup
+      # - cryptsetup
       - dnsutils
       - firmware-misc-nonfree
-      - intel-gpu-tools
-      - intel-media-va-driver-non-free
+      # - intel-gpu-tools
+      # - intel-media-va-driver-non-free
       - iotop
       - iperf
       - iptables
@@ -50,6 +50,7 @@
       - parted
       - qemu-guest-agent
       - util-linux
+      - vim
       state: present
 
   - name: Ensure neofetch exists with correct content
