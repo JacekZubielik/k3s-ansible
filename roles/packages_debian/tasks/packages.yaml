@@ -1,11 +1,11 @@
 ---
 - name: Update and upgrade Debian packages, Install non-free firmware, Intel GPU tools and other tools.
   block:
-  - name: Ensure multipath.conf exists with correct content
-    template:
-      src: multipath.conf.j2
-      dest: /etc/multipath.conf
-      mode: '0644'
+  # - name: Ensure multipath.conf exists with correct content
+  #   template:
+  #     src: multipath.conf.j2
+  #     dest: /etc/multipath.conf
+  #     mode: '0644'
 
   - name: Ensure hostspath.conf exists with correct content
     template:
@@ -33,21 +33,23 @@
   - name: Install required packages
     apt:
       pkg:
-      - dnsutils
-      - jq
-      - open-iscsi
-      - nfs-common
-      - util-linux
-      - parted
       - cryptsetup
+      - dnsutils
       - firmware-misc-nonfree
-      - intel-media-va-driver-non-free
       - intel-gpu-tools
-      - qemu-guest-agent
-      - nmap
+      - intel-media-va-driver-non-free
+      - iotop
+      - iperf
       - iptables
+      - jq
       - mc
       - neofetch
+      - nfs-common
+      - nmap
+      - open-iscsi
+      - parted
+      - qemu-guest-agent
+      - util-linux
       state: present
 
   - name: Ensure neofetch exists with correct content
@@ -66,10 +68,10 @@
       enabled: yes
       state: started
 
-  - name: Install specific kernel image
-    apt:
-      name: linux-image-6.10.6+bpo-cloud-amd64
-      state: present
+  # - name: Install specific kernel image
+  #   apt:
+  #     name: linux-image-6.10.6+bpo-cloud-amd64
+  #     state: present
 
   - name: Ensure iscsi_tcp is present in /etc/modules
     lineinfile:
