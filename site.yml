@@ -15,12 +15,12 @@
     - role: packages_debian
       become: true
 
-# - name: Longhorn utils
-#   hosts: storage_servers
-#   environment: "{{ proxy_env | default({}) }}"
-#   roles:
-#     - role: longhorn_utils
-#       become: true
+- name: Longhorn utils
+  hosts: storage_servers
+  environment: "{{ proxy_env | default({}) }}"
+  roles:
+    - role: longhorn_utils
+      become: true
 
 # - name: Prepare Proxmox cluster
 #   hosts: proxmox
@@ -81,9 +81,9 @@
         flat: true
       when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
 
-# - name: Longhorn labels and annotations
-#   hosts: master
-#   environment: "{{ proxy_env | default({}) }}"
-#   roles:
-#     - role: longhorn_labels
-#       become: true
+- name: Longhorn labels and annotations
+  hosts: master
+  environment: "{{ proxy_env | default({}) }}"
+  roles:
+    - role: longhorn_labels
+      become: true
