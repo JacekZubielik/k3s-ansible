@@ -17,11 +17,11 @@ on:
       - '**/reboot.sh'
       - '**/reset.sh'
 jobs:
-  pre:
-    uses: ./.github/workflows/cache.yml
+  # pre:
+  #   uses: ./.github/workflows/cache.yml
   lint:
     uses: ./.github/workflows/lint.yml
-    needs: [pre]
+    # needs: [pre]
   test:
     uses: ./.github/workflows/test.yml
-    needs: [pre, lint]
+    needs: [lint]
