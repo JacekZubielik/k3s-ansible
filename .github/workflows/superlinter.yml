@@ -9,6 +9,8 @@ jobs:
   pre-commit-ci:
     name: Pre-Commit
     runs-on: [self-hosted]
+    env:
+      PYTHON_VERSION: "3.11"
 
     steps:
     - name: Checkout Code
