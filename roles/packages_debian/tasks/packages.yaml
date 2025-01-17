@@ -1,5 +1,5 @@
 ---
-- name: Update and upgrade Debian packages, Install non-free firmware, Intel GPU tools and other tools.
+- name: "Update and upgrade Debian packages"
   block:
     # - name: Ensure multipath.conf exists with correct content
     #   ansible.builtin.template:
@@ -26,11 +26,11 @@
           non-free-firmware"
         state: present
 
-    - name: Update apt repository cache
+    - name: "Update apt repository cache"
       ansible.builtin.apt:
-        update_cache: yes
+        update_cache: true
 
-    - name: Install required packages
+    - name: "Install required packages"
       ansible.builtin.apt:
         pkg:
           - cryptsetup
@@ -53,17 +53,17 @@
           - vim
         state: present
 
-    - name: Ensure neofetch exists with correct content
+    - name: "Ensure neofetch exists with correct content"
       ansible.builtin.lineinfile:
         path: /home/ansible/.bashrc
         line: "neofetch"
         state: present
 
-    - name: Upgrade all packages to the latest version
+    - name: "Upgrade all packages to the latest version"
       ansible.builtin.apt:
         upgrade: true
 
-    - name: Start the systemd service for qemu-guest-agent if it is not started
+    - name: "Start the systemd service for qemu-guest-agent if it is not started"
       ansible.builtin.systemd:
         name: qemu-guest-agent
         enabled: true
@@ -74,47 +74,47 @@
     #     name: linux-image-6.10.6+bpo-cloud-amd64
     #     state: present
 
-    - name: Ensure iscsi_tcp is present in /etc/modules
+    - name: "Ensure iscsi_tcp is present in /etc/modules"
       ansible.builtin.lineinfile:
         path: /etc/modules
         line: 'iscsi_tcp'
         state: present
 
-    - name: Remove nfs-common service file
-      file:
+    - name: "Remove nfs-common service file"
+      ansible.builtin.file:
         path: /lib/systemd/system/nfs-common.service
         state: absent
 
-    - name: Reload systemd daemon
+    - name: "Reload systemd daemon"
       ansible.builtin.command: systemctl daemon-reload
 
-    - name: Start the systemd service for nfs-common if it is not started
+    - name: "Start the systemd service for nfs-common if it is not started"
       ansible.builtin.systemd:
         name: nfs-common
         enabled: true
         state: started
 
-    - name: Load the kernel module
+    - name: "Load the kernel module"
       community.general.modprobe:
         name: iscsi_tcp
         state: present
 
-    - name: Start the systemd service for iscsid if it is not started
+    - name: "Start the systemd service for iscsid if it is not started"
       ansible.builtin.systemd:
         name: iscsid
         enabled: true
         state: started
 
-    - name: Check if a reboot is required
+    - name: "Check if a reboot is required"
       ansible.builtin.stat:
         path: /var/run/reboot-required
       register: reboot_required_file
 
-    - name: Reboot the server if required
-      reboot:
+    - name: "Reboot the server if required"
+      ansible.builtin.reboot:
         msg: "Reboot initiated by Ansible for package updates"
       when: reboot_required_file.stat.exists
 
-    - name: Autoremove unnecessary packages
+    - name: "Autoremove unnecessary packages"
       ansible.builtin.apt:
         autoremove: true
