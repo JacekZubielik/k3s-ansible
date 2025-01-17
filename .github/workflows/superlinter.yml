@@ -44,7 +44,7 @@ jobs:
 
     - name: Lint Code Base
       # uses: docker://github/super-linter:slim-v5.0.0
-      uses: docker://github/super-linter:485f72ea4d9925b9b341152f10971410082e81b57f7eaf6ad10b309cc76d87b8
+      uses: docker://github/super-linter@sha256:21e57d2b5b456371ac7847bba9560eca01557a055b6d3c7e9ee5d5f101f3af87
       env:
         DEFAULT_BRANCH: main
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
