@@ -23,7 +23,7 @@
       command: lsblk -o NAME,LABEL
       register: result
 
-    - debug:
+    - ansible.builtin.debug:
         var: result.stdout_lines
 
     - name: Add entry to /etc/fstab for LABEL=data
@@ -53,5 +53,5 @@
       register: df_output
 
     - name: Display mounted filesystems
-      debug:
+      ansible.builtin.debug:
         msg: "{{ df_output.stdout }}"

@@ -1,7 +1,7 @@
 ---
 - name: Disable swap memory
-  include_tasks: disable_swap.yml
+  ansible.builtin.include_tasks: disable_swap.yml
 
 - name: Prepare data disks for storage before installing Longhorn
-  include_tasks: format-disks.yaml
+  ansible.builtin.include_tasks: format-disks.yaml
   tags: longhorn
