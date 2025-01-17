@@ -9,7 +9,7 @@
     #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
     - name: "Apply label node.longhorn.io/create-default-disk=config on storage nodes"
-      command: kubectl label nodes {{ hostvars[item].node_name }} node.longhorn.io/create-default-disk=config
+      ansible.builtin.command: kubectl label nodes {{ hostvars[item].node_name }} node.longhorn.io/create-default-disk=config
         --overwrite
       register: label_result
       changed_when: "'already has' not in label_result.stdout"
