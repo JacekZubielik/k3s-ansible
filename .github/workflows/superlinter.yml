@@ -47,10 +47,11 @@ jobs:
     - name: Lint Code Base
       uses: docker://github/super-linter:slim-latest
       env:
-        # DEFAULT_BRANCH: main
+        DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         LINTER_RULES_PATH: .github/configs/lint
-        # VALIDATE_ALL_CODEBASE: false
+        FIX_ANSIBLE: false
+        VALIDATE_ALL_CODEBASE: false
         VALIDATE_ANSIBLE: true
         # VALIDATE_BASH: false
         VALIDATE_GITHUB_ACTIONS: true
