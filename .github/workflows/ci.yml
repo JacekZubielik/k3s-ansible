@@ -21,7 +21,8 @@ jobs:
   # pre:
   #   uses: ./.github/workflows/cache.yml
   lint:
-    uses: ./.github/workflows/lint.yml
+    # uses: ./.github/workflows/lint.yml
+    uses: ./.github/workflows/superlinter.yml
     # needs: [pre]
   test:
     uses: ./.github/workflows/test.yml
