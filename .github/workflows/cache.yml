@@ -1,7 +1,8 @@
 ---
-name: "Cache"
+name: Cache
 on:
   workflow_call:
+
 jobs:
   molecule:
     name: cache
