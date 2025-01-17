@@ -2,56 +2,56 @@
 - name: Create a partition on a disk
   tags: longhorn
   block:
-  - name: Create single large partition filling the disk
-    parted:
-      device: /dev/vda
-      number: 1
-      state: present
-      part_start: "0%"
-      part_end: "100%"
-      unit: GB
+    - name: Create single large partition filling the disk
+      parted:
+        device: /dev/vda
+        number: 1
+        state: present
+        part_start: "0%"
+        part_end: "100%"
+        unit: GB
 
-  - name: Create filesystem on new partition before installing Longhorn
-    filesystem:
-      fstype: ext4
-      dev: /dev/vda1
-      opts: -L data
-      force: true
-      state: present
+    - name: Create filesystem on new partition before installing Longhorn
+      filesystem:
+        fstype: ext4
+        dev: /dev/vda1
+        opts: -L data
+        force: true
+        state: present
 
-  - name: Verify filesystem label
-    command: lsblk -o NAME,LABEL
-    register: result
+    - name: Verify filesystem label
+      command: lsblk -o NAME,LABEL
+      register: result
 
-  - debug:
-      var: result.stdout_lines
+    - debug:
+        var: result.stdout_lines
 
-  - name: Add entry to /etc/fstab for LABEL=data
-    lineinfile:
-      path: /etc/fstab
-      line: 'LABEL=data /mnt/data ext4
-        noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min
-        0 2'
-      state: present
+    - name: Add entry to /etc/fstab for LABEL=data
+      lineinfile:
+        path: /etc/fstab
+        line: 'LABEL=data /mnt/data ext4
+          noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min
+          0 2'
+        state: present
 
-  - name: Reload systemd to apply fstab changes
-    command: systemctl daemon-reload
+    - name: Reload systemd to apply fstab changes
+      command: systemctl daemon-reload
 
-  - name: Create directory /mnt/data
-    file:
-      path: /mnt/data
-      state: directory
-      mode: '0777'
-      owner: nobody
-      group: nogroup
+    - name: Create directory /mnt/data
+      file:
+        path: /mnt/data
+        state: directory
+        mode: '0777'
+        owner: nobody
+        group: nogroup
 
-  - name: Mount all filesystems defined in /etc/fstab
-    command: mount -a
+    - name: Mount all filesystems defined in /etc/fstab
+      command: mount -a
 
-  - name: Verify mounted filesystems
-    command: df -h
-    register: df_output
+    - name: Verify mounted filesystems
+      command: df -h
+      register: df_output
 
-  - name: Display mounted filesystems
-    debug:
-      msg: "{{ df_output.stdout }}"
+    - name: Display mounted filesystems
+      debug:
+        msg: "{{ df_output.stdout }}"

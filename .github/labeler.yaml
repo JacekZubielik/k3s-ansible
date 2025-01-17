@@ -1,20 +1,20 @@
 ---
 github_ci:
-- changed-files:
-  - any-glob-to-any-file: ".github/**/*"
+  - changed-files:
+    - any-glob-to-any-file: ".github/**/*"
 
 issue_template:
-- changed-files:
-  - any-glob-to-any-file: ".github/ISSUE_TEMPLATE/**/*"
+  - changed-files:
+    - any-glob-to-any-file: ".github/ISSUE_TEMPLATE/**/*"
 
 roles:
-- changed-files:
-  - any-glob-to-any-file: "roles/**/*"
+  - changed-files:
+    - any-glob-to-any-file: "roles/**/*"
 
 makefile:
-- changed-files:
-  - any-glob-to-any-file: "Makefile"
+  - changed-files:
+    - any-glob-to-any-file: "Makefile"
 
 inventory:
-- changed-files:
-  - any-glob-to-any-file: "inventory/**/*"
+  - changed-files:
+    - any-glob-to-any-file: "inventory/**/*"
