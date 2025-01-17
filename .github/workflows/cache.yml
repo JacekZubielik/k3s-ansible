@@ -3,6 +3,8 @@ name: Cache
 on:
   workflow_call:
 
+  workflow_dispatch:
+
 jobs:
   molecule:
     name: cache
