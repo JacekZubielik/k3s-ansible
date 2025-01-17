@@ -11,6 +11,7 @@ rules:
     min-spaces-inside-empty: -1
     max-spaces-inside-empty: -1
   colons:
+    level: warning
     max-spaces-before: 0
     max-spaces-after: 1
   commas:
