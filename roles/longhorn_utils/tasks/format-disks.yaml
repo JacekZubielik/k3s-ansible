@@ -1,9 +1,9 @@
 ---
-- name: Create a partition on a disk
+- name: "Create a partition on a disk"
   tags: longhorn
   block:
-    - name: Create single large partition filling the disk
-      parted:
+    - name: "Create single large partition filling the disk"
+      community.general.parted:
         device: /dev/vda
         number: 1
         state: present
@@ -11,22 +11,22 @@
         part_end: "100%"
         unit: GB
 
-    - name: Create filesystem on new partition before installing Longhorn
-      filesystem:
+    - name: "Create filesystem on new partition before installing Longhorn"
+      community.general.filesystem:
         fstype: ext4
         dev: /dev/vda1
         opts: -L data
         force: true
         state: present
 
-    - name: Verify filesystem label
-      command: lsblk -o NAME,LABEL
+    - name: "Verify filesystem label"
+      ansible.builtin.command: lsblk -o NAME,LABEL
       register: result
 
     - ansible.builtin.debug:
         var: result.stdout_lines
 
-    - name: Add entry to /etc/fstab for LABEL=data
+    - name: "Add entry to /etc/fstab for LABEL=data"
       lineinfile:
         path: /etc/fstab
         line: 'LABEL=data /mnt/data ext4
@@ -34,10 +34,10 @@
           0 2'
         state: present
 
-    - name: Reload systemd to apply fstab changes
-      command: systemctl daemon-reload
+    - name: "Reload systemd to apply fstab changes"
+      ansible.builtin.command: systemctl daemon-reload
 
-    - name: Create directory /mnt/data
+    - name: "Create directory /mnt/data"
       file:
         path: /mnt/data
         state: directory
@@ -45,13 +45,13 @@
         owner: nobody
         group: nogroup
 
-    - name: Mount all filesystems defined in /etc/fstab
-      command: mount -a
+    - name: "Mount all filesystems defined in /etc/fstab"
+      ansible.builtin.command: mount -a
 
-    - name: Verify mounted filesystems
-      command: df -h
+    - name: "Verify mounted filesystems"
+      ansible.builtin.command: df -h
       register: df_output
 
-    - name: Display mounted filesystems
+    - name: "Display mounted filesystems"
       ansible.builtin.debug:
         msg: "{{ df_output.stdout }}"

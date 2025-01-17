@@ -10,13 +10,11 @@
       changed_when: "'already has' not in label_result.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
-    - name: "Apply label if not already set"
-      ansible.builtin.command: >
-        kubectl label nodes {{ hostvars[item].node_name }} node.longhorn.io/create-default-disk=config --overwrite
-      when: "'already has' not in label_check.stdout"
-      loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
-
-
+    # - name: "Apply label if not already set"
+    #   ansible.builtin.command: >
+    #     kubectl label nodes {{ hostvars[item].node_name }} node.longhorn.io/create-default-disk=config --overwrite
+    #   when: "'already has' not in label_check.stdout"
+    #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
     - name: "Apply annotation node.longhorn.io/default-node-tags=fast,storage
         on storage nodes in Kubernetes"
