@@ -19,27 +19,27 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Set up Python ${{ env.PYTHON_VERSION }}
-      uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # 5.2.0
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip' # caching pip dependencies
+    # - name: Set up Python ${{ env.PYTHON_VERSION }}
+    #   uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # 5.2.0
+    #   with:
+    #     python-version: ${{ env.PYTHON_VERSION }}
+    #     cache: 'pip' # caching pip dependencies
 
-    - name: Restore Ansible cache
-      uses: actions/cache/restore@2cdf405574d6ef1f33a1d12acccd3ae82f47b3f2 # 4.1.0
-      with:
-        path: ~/.ansible/collections
-        key: ansible-${{ hashFiles('collections/requirements.yml') }}
+    # - name: Restore Ansible cache
+    #   uses: actions/cache/restore@2cdf405574d6ef1f33a1d12acccd3ae82f47b3f2 # 4.1.0
+    #   with:
+    #     path: ~/.ansible/collections
+    #     key: ansible-${{ hashFiles('collections/requirements.yml') }}
 
-    - name: Install dependencies
-      run: |
-        echo "::group::Upgrade pip"
-        python3 -m pip install --upgrade pip
-        echo "::endgroup::"
+    # - name: Install dependencies
+    #   run: |
+    #     echo "::group::Upgrade pip"
+    #     python3 -m pip install --upgrade pip
+    #     echo "::endgroup::"
 
-        echo "::group::Install Python requirements from requirements.txt"
-        python3 -m pip install -r requirements.txt
-        echo "::endgroup::"
+    #     echo "::group::Install Python requirements from requirements.txt"
+    #     python3 -m pip install -r requirements.txt
+    #     echo "::endgroup::"
 
     # - name: Run pre-commit
     #   uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # 3.1.0
@@ -49,8 +49,8 @@ jobs:
       env:
         DEFAULT_BRANCH: main
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # LINTER_RULES_PATH: .github/linters
-        LINTER_RULES_PATH: .github/configs/lintconf.yaml
+        LINTER_RULES_PATH: .github/linters
+        # LINTER_RULES_PATH: .github/configs/lintconf.yaml
         VALIDATE_ALL_CODEBASE: false
         VALIDATE_BASH: false
         VALIDATE_JSCPD: false
