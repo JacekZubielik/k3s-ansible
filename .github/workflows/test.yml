@@ -27,9 +27,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       # these steps are necessary if not using ephemeral nodes
-      - name: Delete old Vagrant box versions
-        if: always() # do this even if a step before has failed
-        run: vagrant box prune --force
+      # - name: Delete old Vagrant box versions
+      #   if: always() # do this even if a step before has failed
+      #   run: vagrant box prune --force
 
       - name: Remove all local Vagrant boxes
         if: always() # do this even if a step before has failed
