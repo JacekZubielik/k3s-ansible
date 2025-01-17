@@ -49,16 +49,21 @@ jobs:
       env:
         DEFAULT_BRANCH: main
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        LINTER_RULES_PATH: .github/linters
-        # LINTER_RULES_PATH: .github/configs/lintconf.yaml
+        LINTER_RULES_PATH: .github/configs/lint
         VALIDATE_ALL_CODEBASE: false
+        VALIDATE_ANSIBLE: true
         VALIDATE_BASH: false
+        VALIDATE_GITHUB_ACTIONS: true
         VALIDATE_JSCPD: false
         VALIDATE_KUBERNETES_KUBEVAL: false
         VALIDATE_PYTHON: false
         VALIDATE_PYTHON_FLAKE8: false
         VALIDATE_PYTHON_BLACK: false
+        VALIDATE_RUST_2021:
+        VALIDATE_RUST_CLIPPY:
         VALIDATE_YAML: true
+        VALIDATE_YAML_PRETTIER: true
+        YAML_ERROR_ON_WARNING: false
 
   # ensure-pinned-actions:
   #   name: Ensure SHA Pinned Actions
