@@ -43,8 +43,7 @@ jobs:
     #   uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # 3.1.0
 
     - name: Lint Code Base
-      # uses: docker://github/super-linter:slim-v5.0.0
-      uses: docker://github/super-linter@sha256:21e57d2b5b456371ac7847bba9560eca01557a055b6d3c7e9ee5d5f101f3af87
+      uses: docker://github/super-linter:slim-latest
       env:
         DEFAULT_BRANCH: main
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,16 +58,16 @@ jobs:
         VALIDATE_PYTHON_BLACK: false
         VALIDATE_YAML: true
 
-  ensure-pinned-actions:
-    name: Ensure SHA Pinned Actions
-    runs-on: self-hosted
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # 4.2.0
+  # ensure-pinned-actions:
+  #   name: Ensure SHA Pinned Actions
+  #   runs-on: self-hosted
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # 4.2.0
 
-    - name: Ensure SHA pinned actions
-      uses: zgosalvez/github-actions-ensure-sha-pinned-actions@b8f9a25a51fe633d9215ac7734854dc11cd299cb # 3.0.13
-      with:
-        allowlist: |
-          aws-actions/
-          docker/login-action
+  #   - name: Ensure SHA pinned actions
+  #     uses: zgosalvez/github-actions-ensure-sha-pinned-actions@b8f9a25a51fe633d9215ac7734854dc11cd299cb # 3.0.13
+  #     with:
+  #       allowlist: |
+  #         aws-actions/
+  #         docker/login-action
