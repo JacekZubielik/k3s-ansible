@@ -43,7 +43,8 @@ jobs:
     #   uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # 3.1.0
 
     - name: Lint Code Base
-      uses: docker://github/super-linter:slim-v5.0.0
+      # uses: docker://github/super-linter:slim-v5.0.0
+      uses: docker://github/super-linter:485f72ea4d9925b9b341152f10971410082e81b57f7eaf6ad10b309cc76d87b8
       env:
         DEFAULT_BRANCH: main
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
