@@ -96,17 +96,17 @@ argument_specs:
           - native
         default: native
 
-      proxy_env:
-        type: dict
-        description: Internet proxy configurations
-        default: ~
-        options:
-          HTTP_PROXY:
-            required: true
-          HTTPS_PROXY:
-            required: true
-          NO_PROXY:
-            required: true
+      # proxy_env:
+      #   type: dict
+      #   description: Internet proxy configurations
+      #   default: ~
+      #   options:
+      #     HTTP_PROXY:
+      #       required: true
+      #     HTTPS_PROXY:
+      #       required: true
+      #     NO_PROXY:
+      #       required: true
 
       retry_count:
         description: Amount of retries when verifying that nodes joined
