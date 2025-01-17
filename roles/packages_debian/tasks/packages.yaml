@@ -7,11 +7,11 @@
   #     dest: /etc/multipath.conf
   #     mode: '0644'
 
-  - name: Ensure hostspath.conf exists with correct content
-    template:
-      src: hostspath.conf.j2
-      dest: /etc/hosts
-      mode: '0644'
+  # - name: Ensure hostspath.conf exists with correct content
+  #   template:
+  #     src: hostspath.conf.j2
+  #     dest: /etc/hosts
+  #     mode: '0644'
 
   - name: Ensure /etc/apt/apt.conf.d/00aptproxy exists with correct content
     template:
