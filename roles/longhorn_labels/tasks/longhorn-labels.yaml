@@ -4,7 +4,7 @@
   block:
     - name: Apply label "node.longhorn.io/create-default-disk=config" on storage nodes
         in Kubernetes
-      command: kubectl label nodes --overwrite {{ hostvars[item].node_name }}
+      ansible.builtin.command: kubectl label nodes --overwrite {{ hostvars[item].node_name }}
         node.longhorn.io/create-default-disk=config
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
