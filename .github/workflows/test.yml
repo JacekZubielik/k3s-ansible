@@ -65,12 +65,12 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip' # caching pip dependencies
 
-      - name: Restore vagrant Boxes cache
-        uses: actions/cache/restore@2cdf405574d6ef1f33a1d12acccd3ae82f47b3f2 # 4.1.0
-        with:
-          path: ~/.vagrant.d/boxes
-          key: vagrant-boxes-${{ hashFiles('**/molecule.yml') }}
-          fail-on-cache-miss: true
+      # - name: Restore vagrant Boxes cache
+      #   uses: actions/cache/restore@2cdf405574d6ef1f33a1d12acccd3ae82f47b3f2 # 4.1.0
+      #   with:
+      #     path: ~/.vagrant.d/boxes
+      #     key: vagrant-boxes-${{ hashFiles('**/molecule.yml') }}
+      #     fail-on-cache-miss: true
 
       - name: Install dependencies
         run: |
