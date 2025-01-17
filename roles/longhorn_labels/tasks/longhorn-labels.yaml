@@ -34,10 +34,9 @@
 
     - name: "Apply annotation node.longhorn.io/default-disks-config for data and
         database on storage nodes in Kubernetes"
-      # ansible.builtin.command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }} 
-      #  node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data/","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]},{"name":"database","path":"/mnt/database/","allowScheduling":true,"storageReserved":4294967296,"tags":["database","fast"]}]'
       ansible.builtin.command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }}
-        node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]'
+        node.longhorn.io/default-disks-config=
+        '[{"name":"data","path":"/mnt/data","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]'
       register: label_result
       changed_when: "'already has' not in label_result.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
@@ -46,13 +45,13 @@
       ansible.builtin.command: kubectl patch storageclass local-path -p
         '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 
-    - name: Run the preconfig script
+    - name: "Run the preconfig script"
       ansible.builtin.shell: curl -sSfL
         https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/scripts/environment_check.sh
         | bash
       register: check
 
-    - name: Print output from check
+    - name: "Print output from check"
       ansible.builtin.debug: msg="{{ check.stdout }}"
 
     - name: Apply label "node-role.kubernetes.io/worker='worker" on nodes in Kubernetes

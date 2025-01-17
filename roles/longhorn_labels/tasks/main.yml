@@ -1,4 +1,4 @@
 ---
 - name: Test for Longhorn
-  include_tasks: longhorn-labels.yaml
+  ansible.builtin.include_tasks: longhorn-labels.yaml
   tags: longhorn
