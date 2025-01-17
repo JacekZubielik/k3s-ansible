@@ -117,4 +117,4 @@
 
   - name: Autoremove unnecessary packages
     apt:
-      autoremove: yes
+      autoremove: true
