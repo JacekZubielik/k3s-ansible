@@ -8,13 +8,12 @@
     #     node.longhorn.io/create-default-disk=config
     #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
-    - name: Apply label "node.longhorn.io/create-default-disk=config" on storage nodes
-      command: kubectl label nodes {{ hostvars[item].node_name }} node.longhorn.io/create-default-disk=config --overwrite
+    - name: "Apply label node.longhorn.io/create-default-disk=config on storage nodes"
+      command: kubectl label nodes {{ hostvars[item].node_name }} node.longhorn.io/create-default-disk=config
+        --overwrite
       register: label_result
       changed_when: "'already has' not in label_result.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
-
-
 
     - name: Apply annotation "node.longhorn.io/default-node-tags='["fast","storage"]'"
         on storage nodes in Kubernetes
@@ -22,8 +21,8 @@
         node.longhorn.io/default-node-tags='["fast","storage"]'
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
-    - name: Apply annotation "node.longhorn.io/config-node-tags='["fast","storage"]'"
-        on storage nodes in Kubernetes
+    - name: "Apply annotation config-node-tags=[fast,storage]
+        on storage nodes in Kubernetes"
       command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }}
         node.longhorn.io/config-node-tags='["fast","storage"]'
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
