@@ -45,11 +45,18 @@
 
 - name: "Verify mounted filesystems"
   block:
+    # - name: "Check current annotations of the storage class"
+    #   ansible.builtin.command:
+    #     kubectl get storageclass local-path -o
+    #     jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
+    #   register: storage_class_flag
+
     - name: "Check current annotations of the storage class"
       ansible.builtin.command:
         kubectl get storageclass local-path -o
         jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
       register: storage_class_flag
+      # changed_when: storage_class_flag.stdout != lookup('vars', 'previous_default_class_value') | default('true', true)
 
     - name: "Check if local-path is default"
       set_fact:
