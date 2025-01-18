@@ -35,11 +35,17 @@
           0 2'
         state: present
 
+    - name: Check if fstab has changed
+      ansible.builtin.stat:
+        path: /etc/fstab
+      register: fstab_stat
+
     - name: "Reload systemd to apply fstab changes"
       ansible.builtin.command: systemctl daemon-reload
+      when: fstab_stat.changed
 
     - name: "Create directory /mnt/data"
-      file:
+      ansible.builtin.file:
         path: /mnt/data
         state: directory
         mode: '0777'
@@ -48,10 +54,13 @@
 
     - name: "Mount all filesystems defined in /etc/fstab"
       ansible.builtin.command: mount -a
+      args:
+        warn: no
 
     - name: "Verify mounted filesystems"
       ansible.builtin.command: df -h
       register: df_output
+      changed_when: false
 
     - name: "Display mounted filesystems"
       ansible.builtin.debug:
