@@ -59,27 +59,33 @@
       # changed_when: storage_class_flag.stdout != lookup('vars', 'previous_default_class_value') | default('true', true)
 
     - name: "Check if local-path is default"
-      set_fact:
+      ansible.builtin.set_fact:
         is_default_class: "{{ storage_class_flag.stdout | default('false') }}"
 
     - name: "Debug current default flag"
       ansible.builtin.debug:
         var: is_default_class
 
-    - name: "Remove the default flag from the local-provisioner"
+    - name: "Remove the default flag from the local-provisioner if it's set to true"
       ansible.builtin.command:
         kubectl patch storageclass local-path -p
         '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
-      # when: current_default_flag.stdout == 'true'
       when: (storage_class_flag.stdout | default('false')) == 'true'
+      register: patch_result
+      changed_when: '"unchanged" not in patch_result.stderr'
 
 - name: "Preconfig script"
   block:
+    - name: "Download the preconfig script"
+      ansible.builtin.get_url:
+        url: "https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/scripts/environment_check.sh"
+        dest: "/tmp/environment_check.sh"
+        mode: '0755'
+      register: script_download
+
     - name: "Run the preconfig script"
-      ansible.builtin.shell:
-        curl -sSfL
-        https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/scripts/environment_check.sh
-        | bash
+      ansible.builtin.shell: "/tmp/environment_check.sh"
+      when: script_download.changed or not script_download.changed
       register: script_check
 
     - name: "Print output from script_check"
