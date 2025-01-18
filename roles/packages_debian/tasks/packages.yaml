@@ -54,6 +54,9 @@
       ansible.builtin.apt:
         upgrade: true
 
+
+- name: "Check system"
+  block:
     - name: "Check status of qemu-guest-agent"
       ansible.builtin.shell: >
         systemctl is-active qemu-guest-agent
@@ -113,17 +116,37 @@
       ansible.builtin.debug:
         msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
 
+    # - name: "Check if iscsid is installed"
+    #   ansible.builtin.command: >
+    #     systemctl is-active iscsid || echo "inactive"
+    #   register: iscsid_status
+
+    # - name: "Start the systemd service for iscsid if it is not started"
+    #   ansible.builtin.systemd:
+    #     name: iscsid
+    #     enabled: true
+    #     state: started
+    #   when: iscsid_status.stdout != 'active'
+
     - name: "Check if iscsid is installed"
-      ansible.builtin.command: >
-        systemctl is-active iscsid || echo "inactive"
+      ansible.builtin.systemd:
+        name: iscsid
+        state: started
+        enabled: true
       register: iscsid_status
+      check_mode: yes  # Optional: Use this if you want to check without making changes
 
     - name: "Start the systemd service for iscsid if it is not started"
       ansible.builtin.systemd:
         name: iscsid
         enabled: true
         state: started
-      when: iscsid_status.stdout != 'active'
+      when: iscsid_status.status != 'active'
+
+
+
+
+
 
     - name: "Check if a reboot is required"
       ansible.builtin.stat:
