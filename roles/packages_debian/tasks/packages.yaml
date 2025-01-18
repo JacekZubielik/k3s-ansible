@@ -102,7 +102,8 @@
       loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
 
     - name: "Check if iscsi_tcp module is loaded"
-      ansible.builtin.shell: lsmod | grep -q iscsi_tcp
+      ansible.builtin.shell: >
+        lsmod | grep -q iscsi_tcp
       register: iscsi_tcp_loaded
       failed_when: false
       changed_when: false
@@ -113,7 +114,8 @@
         msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
 
     - name: "Check if iscsid is installed"
-      ansible.builtin.command: systemctl is-active iscsid || echo "inactive"
+      ansible.builtin.command: >
+        systemctl is-active iscsid || echo "inactive"
       register: iscsid_status
 
     - name: "Start the systemd service for iscsid if it is not started"
