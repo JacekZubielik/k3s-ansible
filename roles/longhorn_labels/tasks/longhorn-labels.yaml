@@ -43,22 +43,27 @@
       changed_when: "'already has' not in annotation_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
+- name: "Verify mounted filesystems"
+  block:
     - name: "Check current annotations of the storage class"
       ansible.builtin.command: >
         kubectl get storageclass local-path -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
-      register: current_default_flag
+      register: storage_class_flag
+
+    - name: "Check if local-path is default"
+      set_fact:
+        is_default_class: "{{ storage_class_flag.stdout | default('false') }}"
 
     - name: "Debug current default flag"
       ansible.builtin.debug:
-        var: current_default_flag
+        var: is_default_class
 
     - name: "Remove the default flag from the local-provisioner"
       ansible.builtin.command: >
         kubectl patch storageclass local-path -p
         '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
       # when: current_default_flag.stdout == 'true'
-      when: (current_default_flag.stdout | default('false')) == 'true'
-
+      when: (storage_class_flag.stdout | default('false')) == 'true'
 
 - name: "Preconfig script"
   block:
