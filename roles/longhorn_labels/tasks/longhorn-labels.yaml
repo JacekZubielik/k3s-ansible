@@ -1,5 +1,5 @@
 ---
-- name: "Verify prerequisites for Longhorn and label storage nodes"
+- name: "Verify prerequisites for Longhorn"
   tags: longhorn
   block:
     - name: "Apply label create-default-disk=config on storage nodes"
@@ -43,12 +43,25 @@
       changed_when: "'already has' not in annotation_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
+    - name: "Check current annotations of the storage class"
+      ansible.builtin.command: >
+        kubectl get storageclass local-path -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
+      register: current_default_flag
+
+    - name: "Debug current default flag"
+      ansible.builtin.debug:
+        var: current_default_flag
+
     - name: "Remove the default flag from the local-provisioner"
       ansible.builtin.command: >
         kubectl patch storageclass local-path -p
         '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
-      register: provisioner_check
+      # when: current_default_flag.stdout == 'true'
+      when: (current_default_flag.stdout | default('false')) == 'true'
 
+
+- name: "Preconfig script"
+  block:
     - name: "Run the preconfig script"
       ansible.builtin.shell: >
         curl -sSfL
@@ -57,9 +70,11 @@
       register: script_check
 
     - name: "Print output from script_check"
-      ansible.builtin.debug: >
+      ansible.builtin.debug:
         msg="{{ script_check.stdout }}"
 
+- name: "Apply label worker"
+  block:
     - name: "Apply label node-role.kubernetes.io/worker=worker"
       ansible.builtin.command: >
         kubectl label nodes {{ hostvars[item].node_name }}

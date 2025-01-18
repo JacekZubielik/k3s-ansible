@@ -15,14 +15,6 @@
     unit: GB
   when: disk_info.partitions | map(attribute='num') | list | select('==', '1') | list | length == 0  # Check if partition 1 does not exist
 
-# - name: "Create filesystem on new partition before installing Longhorn"
-#   community.general.filesystem:
-#     fstype: ext4
-#     dev: /dev/vda1
-#     opts: -L data
-#     force: true
-#     state: present
-
 - name: "Check if partition is mounted"
   ansible.builtin.shell: mount | grep /dev/vda1 || true
   register: mount_check
@@ -94,15 +86,19 @@
   when: item not in ansible_mounts | map(attribute='mount') | list
 
 - name: "Verify mounted filesystems"
-  ansible.builtin.command: df -h
-  register: df_output
-  changed_when: false
+  block:
+    - name: "Check disk usage"
+      ansible.builtin.command: >
+        df -h
+      register: df_output
+      changed_when: false
 
-# - name: "Display mounted filesystems"
-#   ansible.builtin.debug:
-#     msg: "{{ df_output.stdout }}"
+    - name: "Display mounted filesystems"
+      ansible.builtin.debug:
+        msg: "{{ df_output.stdout }}"
 
-  # rescue:
-  #   - name: "Handle any errors in block"
-  #     ansible.builtin.debug:
-  #       msg: "An error occurred in the block."
+  rescue:
+    - name: "Handle failure"
+      debug:
+        msg: "Disk check failed."
+
