@@ -13,16 +13,17 @@
     part_start: "0%"
     part_end: "100%"
     unit: GB
-  when: disk_info.partitions | map(attribute='num') | list | select('==', '1') | list | length == 0  # Check if partition 1 does not exist
+  when: disk_info.partitions | map(attribute='num') | list | select('==', '1') | list | length == 0
 
 - name: "Check if partition is mounted"
-  ansible.builtin.shell: mount | grep /dev/vda1 || true
+  ansible.builtin.shell: >
+    mount | grep /dev/vda1 || true
   register: mount_check
   changed_when: false
 
 - name: "Unmount partition if it is mounted"
   ansible.posix.mount:
-    path: "{{ mount_check.stdout.split()[2] }}"  # Assuming the mount point is the third word in the grep output
+    path: "{{ mount_check.stdout.split()[2] }}"
     state: unmounted
   when: mount_check.stdout | length > 0
 
@@ -99,6 +100,6 @@
 
   rescue:
     - name: "Handle failure"
-      debug:
+      ansible.builtin.debug:
         msg: "Disk check failed."
 
