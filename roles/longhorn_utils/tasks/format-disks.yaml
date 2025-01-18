@@ -78,11 +78,6 @@
     owner: nobody
     group: nogroup
 
-# - name: "Mount all filesystems defined in /etc/fstab"
-#   ansible.builtin.command: mount -a
-#   args:
-#     warn: false
-
 - name: Ensure all filesystems in /etc/fstab are mounted
   ansible.posix.mount:
     path: "{{ item }}"

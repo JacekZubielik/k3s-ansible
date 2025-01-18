@@ -54,12 +54,12 @@
       ansible.builtin.apt:
         upgrade: true
 
-
 - name: "Check system"
   block:
     - name: "Check status of qemu-guest-agent"
-      ansible.builtin.shell:
-        systemctl is-active qemu-guest-agent
+      ansible.builtin.systemd:
+        name: qemu-guest-agent
+        state: started
       register: qga_status
       changed_when: false
       check_mode: false
@@ -69,7 +69,7 @@
         name: qemu-guest-agent
         enabled: true
         state: started
-      when: qga_status.stdout != 'active'
+      when: qga_status.status != 'started'
 
     - name: "Ensure iscsi_tcp is present in /etc/modules"
       ansible.builtin.lineinfile:
@@ -87,17 +87,26 @@
       ansible.builtin.systemd:
         daemon_reload: true
 
-    - name: "Check if nfs-common is installed"
-      ansible.builtin.command:
-        systemctl is-active nfs-common || echo "inactive"
-      register: nfs_status
+    - name: Gather service facts
+      ansible.builtin.service_facts:
 
-    - name: "Start the systemd service for nfs-common if it is not started"
+    - name: "Check if nfs-common is installed"
+      ansible.builtin.package:
+        name: nfs-common
+        state: present
+      register: nfs_package
+      check_mode: false
+
+    - name: Check nfs-common service status
+      command: systemctl is-active nfs-common
+      register: nfs_service_status
+      ignore_errors: true
+
+    - name: Ensure nfs-common service is started
       ansible.builtin.systemd:
         name: nfs-common
-        enabled: true
         state: started
-      when: qga_status.stdout != 'active'
+      when: nfs_service_status.stdout != 'active'
 
     - name: "Load iscsi_tcp kernel module"
       community.general.modprobe:
