@@ -98,8 +98,10 @@
       check_mode: false
 
     - name: Check nfs-common service status
-      command: systemctl is-active nfs-common
+      ansible.builtin.command:
+        systemctl is-active nfs-common
       register: nfs_service_status
+      changed_when: false
       ignore_errors: true
 
     - name: Ensure nfs-common service is started
@@ -116,7 +118,9 @@
 
     - name: "Check if iscsi_tcp module is loaded"
       ansible.builtin.shell:
-        lsmod | grep -q iscsi_tcp
+        cmd: |
+          set -o pipefail
+          lsmod | grep -q iscsi_tcp
       register: iscsi_tcp_loaded
       failed_when: false
       changed_when: false

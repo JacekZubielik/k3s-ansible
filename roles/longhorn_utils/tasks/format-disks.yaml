@@ -15,23 +15,31 @@
     unit: GB
   when: disk_info.partitions | map(attribute='num') | list | select('==', '1') | list | length == 0
 
-- name: "Check if partition is mounted"
-  ansible.builtin.shell:
-    mount | grep /dev/vda1 || true
+- name: "Ensure if partition is mounted"
+  ansible.posix.mount:
+    src: "/dev/vda1"
+    path: "/mnt/data"
+    fstype: "ext4"
+    state: "mounted"
   register: mount_check
   changed_when: false
 
-- name: "Unmount partition if it is mounted"
-  ansible.posix.mount:
-    path: "{{ mount_check.stdout.split()[2] }}"
-    state: unmounted
-  when: mount_check.stdout | length > 0
-
-- name: "Check if filesystem is on new partition"
+- name: "Ensure filesystem is on new partition"
   ansible.builtin.shell:
-    df -T | grep /dev/vda1 || true
+    cmd: |
+      set -o pipefail
+      df -T | grep /dev/vda1 || true
   register: filesystem
+  failed_when: false
   changed_when: false
+
+- name: "Ensure partition is unmounted"
+  ansible.posix.mount:
+    src: "/dev/vda1"
+    path: "/mnt/data"
+    fstype: "ext4"
+    state: unmounted
+  register: unmount_result
 
 - name: "Create filesystem on new partition before installing Longhorn"
   community.general.filesystem:
@@ -40,17 +48,13 @@
     opts: -L data
     force: true
     state: present
-  when: filesystem.stdout | length == 0
+  when: filesystem.stdout | length == 0 or ('/dev/vda1' not in ansible_mounts|map(attribute='device')|list)
 
 - name: "Verify filesystem label"
   ansible.builtin.command:
     lsblk -o NAME,LABEL
   register: result
   changed_when: false
-
-- name: "Debug"
-  ansible.builtin.debug:
-    var: result.stdout_lines
 
 - name: "Add entry to '/etc/fstab' for LABEL=data"
   ansible.builtin.lineinfile:
@@ -70,6 +74,15 @@
     systemctl daemon-reload
   when: fstab_stat.changed
 
+- name: "Ensure if partition is mounted"
+  ansible.posix.mount:
+    src: "/dev/vda1"
+    path: "/mnt/data"
+    fstype: "ext4"
+    state: "mounted"
+  register: mount_check
+  changed_when: false
+
 - name: "Create directory /mnt/data"
   ansible.builtin.file:
     path: /mnt/data
@@ -87,18 +100,21 @@
 
 - name: "Verify mounted filesystems"
   block:
-    - name: "Check disk usage"
-      ansible.builtin.command:
-        df -h
-      register: df_output
-      changed_when: false
+    # - name: "Check disk usage"
+    #   ansible.builtin.command:
+    #     df -h
+    #   register: df_output
+    #   changed_when: false
 
-    - name: "Display mounted filesystems"
+    # - name: "Display mounted filesystems"
+    #   ansible.builtin.debug:
+    #     msg: "{{ df_output.stdout }}"
+
+    - name: "Debug"
       ansible.builtin.debug:
-        msg: "{{ df_output.stdout }}"
+        var: result.stdout_lines
 
   rescue:
     - name: "Handle failure"
       ansible.builtin.debug:
         msg: "Disk check failed."
-
