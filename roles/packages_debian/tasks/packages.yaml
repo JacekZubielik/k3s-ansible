@@ -9,6 +9,8 @@
         src: apt-cacher.conf.j2
         dest: /etc/apt/apt.conf.d/00aptproxy
         mode: '0644'
+      register: aptproxy_check
+      loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
 
     - name: "Ensure non-free repository is enabled"
       ansible.builtin.lineinfile:
@@ -52,18 +54,18 @@
       ansible.builtin.apt:
         upgrade: true
 
-
-    - name: Check if qemu-guest-agent is installed
-      ansible.builtin.command: systemctl is-active qemu-guest-agent || echo "inactive"
+    - name: "Check status of qemu-guest-agent"
+      ansible.builtin.shell: >
+        systemctl is-active qemu-guest-agent
       register: qga_status
+      changed_when: false
+      check_mode: no
 
     - name: "Start qemu-guest-agent if it is not running"
       ansible.builtin.systemd:
         name: qemu-guest-agent
         enabled: true
         state: started
-      # when: ansible_facts.services['qemu-guest-agent'].state != 'running'
-      # when: "'qemu-guest-agent' in ansible_facts.services and ansible_facts.services['qemu-guest-agent'].state != 'running'"
       when: qga_status.stdout != 'active'
 
     - name: "Ensure iscsi_tcp is present in /etc/modules"
@@ -92,12 +94,23 @@
         enabled: true
         state: started
       when: qga_status.stdout != 'active'
-      # when: "'nfs-common' in ansible_facts.services and ansible_facts.services['nfs-common'].state != 'running'"
 
-    - name: "Load the kernel module"
+    - name: "Load iscsi_tcp kernel module"
       community.general.modprobe:
         name: iscsi_tcp
         state: present
+      loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
+
+    - name: "Check if iscsi_tcp module is loaded"
+      ansible.builtin.shell: lsmod | grep -q iscsi_tcp
+      register: iscsi_tcp_loaded
+      failed_when: false
+      changed_when: false
+      check_mode: no
+
+    - name: "Debug iscsi_tcp module status"
+      ansible.builtin.debug:
+        msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
 
     - name: Check if iscsid is installed
       ansible.builtin.command: systemctl is-active iscsid || echo "inactive"
@@ -123,3 +136,8 @@
     - name: "Autoremove unnecessary packages"
       ansible.builtin.apt:
         autoremove: true
+
+  rescue:
+    - name: "Handle any errors in block"
+      ansible.builtin.debug:
+        msg: "An error occurred in the block."

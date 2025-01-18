@@ -1,73 +1,68 @@
 ---
-- name: Verify prerequisites for Longhorn and label storage nodes
+- name: "Verify prerequisites for Longhorn and label storage nodes"
   tags: longhorn
   block:
-    - name: "Apply label node.longhorn.io/create-default-disk=config on storage nodes"
+    - name: "Apply label create-default-disk=config on storage nodes"
       ansible.builtin.command: >
         kubectl label nodes {{ hostvars[item].node_name }}
         node.longhorn.io/create-default-disk=config --overwrite
       register: label_check
-      changed_when: "'already has' not in label_result.stdout"
+      changed_when: "'already has' not in label_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
-    # - name: "Apply label if not already set"
-    #   ansible.builtin.command: >
-    #     kubectl label nodes {{ hostvars[item].node_name }} node.longhorn.io/create-default-disk=config --overwrite
-    #   when: "'already has' not in label_check.stdout"
-    #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
-
-    - name: "Apply annotation node.longhorn.io/default-node-tags=fast,storage
-        on storage nodes in Kubernetes"
-      ansible.builtin.command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }}
-        node.longhorn.io/default-node-tags='["fast","storage"]'
+    - name: "Apply annotation default-node-tags=fast,storage on storage nodes"
+      ansible.builtin.command: >
+        kubectl annotate nodes {{ hostvars[item].node_name }}
+        node.longhorn.io/default-node-tags='["fast","storage"]' --overwrite
       register: annotation_check
-      changed_when: "'already has' not in label_result.stdout"
+      changed_when: "'already has' not in annotation_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
-    - name: "Apply annotation config-node-tags=fast,storage
-        on storage nodes in Kubernetes"
-      ansible.builtin.command: kubectl annotate nodes --overwrite {{ hostvars[item].node_name }}
-        node.longhorn.io/config-node-tags='["fast","storage"]'
-      register: label_result
-      changed_when: "'already has' not in label_result.stdout"
+    - name: "Apply annotation config-node-tags=fast,storage on storage nodes"
+      ansible.builtin.command: >
+        kubectl annotate nodes {{ hostvars[item].node_name }}
+        node.longhorn.io/config-node-tags='["fast","storage"]' --overwrite
+      register: label_check
+      changed_when: "'already has' not in label_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
-    - name: "Apply label storage=longhorn on storage nodes in Kubernetes"
-      ansible.builtin.command: kubectl label nodes --overwrite {{ hostvars[item].node_name }}
-        storage='longhorn'
-      register: label_result
-      changed_when: "'already has' not in label_result.stdout"
+    - name: "Apply label storage=longhorn on storage nodes"
+      ansible.builtin.command: >
+        kubectl label nodes {{ hostvars[item].node_name }}
+        storage='longhorn' --overwrite
+      register: label_check
+      changed_when: "'already has' not in label_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
-    - name: "Apply annotation node.longhorn.io/default-disks-config for data and
-        database on storage nodes in Kubernetes"
-      ansible.builtin.command:
-        kubectl annotate nodes --overwrite {{ hostvars[item].node_name }}
-        node.longhorn.io/default-disks-config=
-        '[{"name":"data","path":"/mnt/data","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]'
-      register: label_result
-      changed_when: "'already has' not in label_result.stdout"
+    - name: "Apply annotation default-disks-config for data and database on storage nodes"
+      ansible.builtin.command: >
+        kubectl annotate nodes {{ hostvars[item].node_name }}
+        node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]' --overwrite
+      register: annotation_check
+      changed_when: "'already has' not in annotation_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
     - name: "Remove the default flag from the local-provisioner"
-      ansible.builtin.command:
+      ansible.builtin.command: >
         kubectl patch storageclass local-path -p
         '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+      register: provisioner_check
 
     - name: "Run the preconfig script"
-      ansible.builtin.shell:
+      ansible.builtin.shell: >
         curl -sSfL
         https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/scripts/environment_check.sh
         | bash
-      register: check
+      register: script_check
 
-    - name: "Print output from check"
-      ansible.builtin.debug:
-        msg="{{ check.stdout }}"
+    - name: "Print output from script_check"
+      ansible.builtin.debug: >
+        msg="{{ script_check.stdout }}"
 
-    - name: Apply label "node-role.kubernetes.io/worker='worker" on nodes in Kubernetes
-      ansible.builtin.command: kubectl label nodes {{ hostvars[item].node_name }} --overwrite
-        node-role.kubernetes.io/worker='worker'
-      register: label_result
-      changed_when: "'already has' not in label_result.stdout"
+    - name: "Apply label node-role.kubernetes.io/worker=worker"
+      ansible.builtin.command: >
+        kubectl label nodes {{ hostvars[item].node_name }}
+        node-role.kubernetes.io/worker='worker' --overwrite
+      register: label_check
+      changed_when: "'already has' not in label_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"

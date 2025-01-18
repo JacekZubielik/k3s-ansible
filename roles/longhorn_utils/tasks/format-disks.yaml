@@ -1,67 +1,108 @@
 ---
-- name: "Create a partition on a disk"
-  tags: longhorn
-  block:
-    - name: "Create single large partition filling the disk"
-      community.general.parted:
-        device: /dev/vda
-        number: 1
-        state: present
-        part_start: "0%"
-        part_end: "100%"
-        unit: GB
+- name: "Check if partition already exists"
+  community.general.parted:
+    device: /dev/vda
+    unit: GB
+  register: disk_info
 
-    - name: "Create filesystem on new partition before installing Longhorn"
-      community.general.filesystem:
-        fstype: ext4
-        dev: /dev/vda1
-        opts: -L data
-        force: true
-        state: present
+- name: "Create single large partition filling the disk"
+  community.general.parted:
+    device: /dev/vda
+    number: 1
+    state: present
+    part_start: "0%"
+    part_end: "100%"
+    unit: GB
+  when: disk_info.partitions | map(attribute='num') | list | select('==', '1') | list | length == 0  # Check if partition 1 does not exist
 
-    - name: "Verify filesystem label"
-      ansible.builtin.command: lsblk -o NAME,LABEL
-      register: result
-      changed_when: false
+# - name: "Create filesystem on new partition before installing Longhorn"
+#   community.general.filesystem:
+#     fstype: ext4
+#     dev: /dev/vda1
+#     opts: -L data
+#     force: true
+#     state: present
 
-    - ansible.builtin.debug:
-        var: result.stdout_lines
+- name: "Check if partition is mounted"
+  ansible.builtin.shell: mount | grep /dev/vda1 || true
+  register: mount_check
+  changed_when: false
 
-    - name: "Add entry to /etc/fstab for LABEL=data"
-      ansible.builtin.lineinfile:
-        path: /etc/fstab
-        line: 'LABEL=data /mnt/data ext4
-          noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min
-          0 2'
-        state: present
+- name: "Unmount partition if it is mounted"
+  ansible.posix.mount:
+    path: "{{ mount_check.stdout.split()[2] }}"  # Assuming the mount point is the third word in the grep output
+    state: unmounted
+  when: mount_check.stdout | length > 0
 
-    - name: Check if fstab has changed
-      ansible.builtin.stat:
-        path: /etc/fstab
-      register: fstab_stat
+- name: "Check if filesystem is on new partition"
+  ansible.builtin.shell: df -T | grep /dev/vda1 || true
+  register: filesystem
+  changed_when: false
 
-    - name: "Reload systemd to apply fstab changes"
-      ansible.builtin.command: systemctl daemon-reload
-      when: fstab_stat.changed
+- name: "Create filesystem on new partition before installing Longhorn"
+  community.general.filesystem:
+    fstype: ext4
+    dev: /dev/vda1
+    opts: -L data
+    force: true
+    state: present
+  when: filesystem.stdout | length == 0
 
-    - name: "Create directory /mnt/data"
-      ansible.builtin.file:
-        path: /mnt/data
-        state: directory
-        mode: '0777'
-        owner: nobody
-        group: nogroup
+- name: "Verify filesystem label"
+  ansible.builtin.command: lsblk -o NAME,LABEL
+  register: result
+  changed_when: false
 
-    - name: "Mount all filesystems defined in /etc/fstab"
-      ansible.builtin.command: mount -a
-      args:
-        warn: no
+- ansible.builtin.debug:
+    var: result.stdout_lines
 
-    - name: "Verify mounted filesystems"
-      ansible.builtin.command: df -h
-      register: df_output
-      changed_when: false
+- name: "Add entry to '/etc/fstab' for LABEL=data"
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: 'LABEL=data /mnt/data ext4
+      noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min
+      0 2'
+    state: present
 
-    - name: "Display mounted filesystems"
-      ansible.builtin.debug:
-        msg: "{{ df_output.stdout }}"
+- name: Check if fstab has changed
+  ansible.builtin.stat:
+    path: /etc/fstab
+  register: fstab_stat
+
+- name: "Reload systemd to apply fstab changes"
+  ansible.builtin.command: systemctl daemon-reload
+  when: fstab_stat.changed
+
+- name: "Create directory /mnt/data"
+  ansible.builtin.file:
+    path: /mnt/data
+    state: directory
+    mode: '0777'
+    owner: nobody
+    group: nogroup
+
+# - name: "Mount all filesystems defined in /etc/fstab"
+#   ansible.builtin.command: mount -a
+#   args:
+#     warn: false
+
+- name: Ensure all filesystems in /etc/fstab are mounted
+  ansible.posix.mount:
+    path: "{{ item }}"
+    state: mounted
+  loop: "{{ ansible_mounts | map(attribute='mount') | list }}"
+  when: item not in ansible_mounts | map(attribute='mount') | list
+
+- name: "Verify mounted filesystems"
+  ansible.builtin.command: df -h
+  register: df_output
+  changed_when: false
+
+# - name: "Display mounted filesystems"
+#   ansible.builtin.debug:
+#     msg: "{{ df_output.stdout }}"
+
+  # rescue:
+  #   - name: "Handle any errors in block"
+  #     ansible.builtin.debug:
+  #       msg: "An error occurred in the block."
