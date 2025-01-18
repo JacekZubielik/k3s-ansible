@@ -22,12 +22,13 @@
     - name: "Verify filesystem label"
       ansible.builtin.command: lsblk -o NAME,LABEL
       register: result
+      changed_when: false
 
     - ansible.builtin.debug:
         var: result.stdout_lines
 
     - name: "Add entry to /etc/fstab for LABEL=data"
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /etc/fstab
         line: 'LABEL=data /mnt/data ext4
           noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min
