@@ -58,11 +58,11 @@
 - name: "Check system"
   block:
     - name: "Check status of qemu-guest-agent"
-      ansible.builtin.shell: >
+      ansible.builtin.shell:
         systemctl is-active qemu-guest-agent
       register: qga_status
       changed_when: false
-      check_mode: no
+      check_mode: false
 
     - name: "Start qemu-guest-agent if it is not running"
       ansible.builtin.systemd:
@@ -88,7 +88,8 @@
         daemon_reload: true
 
     - name: "Check if nfs-common is installed"
-      ansible.builtin.command: systemctl is-active nfs-common || echo "inactive"
+      ansible.builtin.command:
+        systemctl is-active nfs-common || echo "inactive"
       register: nfs_status
 
     - name: "Start the systemd service for nfs-common if it is not started"
@@ -105,7 +106,7 @@
       loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
 
     - name: "Check if iscsi_tcp module is loaded"
-      ansible.builtin.shell: >
+      ansible.builtin.shell:
         lsmod | grep -q iscsi_tcp
       register: iscsi_tcp_loaded
       failed_when: false
@@ -116,25 +117,13 @@
       ansible.builtin.debug:
         msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
 
-    # - name: "Check if iscsid is installed"
-    #   ansible.builtin.command: >
-    #     systemctl is-active iscsid || echo "inactive"
-    #   register: iscsid_status
-
-    # - name: "Start the systemd service for iscsid if it is not started"
-    #   ansible.builtin.systemd:
-    #     name: iscsid
-    #     enabled: true
-    #     state: started
-    #   when: iscsid_status.stdout != 'active'
-
     - name: "Check if iscsid is installed"
       ansible.builtin.systemd:
         name: iscsid
         state: started
         enabled: true
       register: iscsid_status
-      check_mode: yes  # Optional: Use this if you want to check without making changes
+      check_mode: false  # Optional: Use this if you want to check without making changes
 
     - name: "Start the systemd service for iscsid if it is not started"
       ansible.builtin.systemd:
@@ -142,11 +131,6 @@
         enabled: true
         state: started
       when: iscsid_status.status != 'active'
-
-
-
-
-
 
     - name: "Check if a reboot is required"
       ansible.builtin.stat:

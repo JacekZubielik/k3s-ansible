@@ -3,7 +3,7 @@
   tags: longhorn
   block:
     - name: "Apply label create-default-disk=config on storage nodes"
-      ansible.builtin.command: >
+      ansible.builtin.command:
         kubectl label nodes {{ hostvars[item].node_name }}
         node.longhorn.io/create-default-disk=config --overwrite
       register: label_check
@@ -11,7 +11,7 @@
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
     - name: "Apply annotation default-node-tags=fast,storage on storage nodes"
-      ansible.builtin.command: >
+      ansible.builtin.command:
         kubectl annotate nodes {{ hostvars[item].node_name }}
         node.longhorn.io/default-node-tags='["fast","storage"]' --overwrite
       register: annotation_check
@@ -19,7 +19,7 @@
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
     - name: "Apply annotation config-node-tags=fast,storage on storage nodes"
-      ansible.builtin.command: >
+      ansible.builtin.command:
         kubectl annotate nodes {{ hostvars[item].node_name }}
         node.longhorn.io/config-node-tags='["fast","storage"]' --overwrite
       register: label_check
@@ -27,7 +27,7 @@
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
     - name: "Apply label storage=longhorn on storage nodes"
-      ansible.builtin.command: >
+      ansible.builtin.command:
         kubectl label nodes {{ hostvars[item].node_name }}
         storage='longhorn' --overwrite
       register: label_check
@@ -35,7 +35,7 @@
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
     - name: "Apply annotation default-disks-config for data and database on storage nodes"
-      ansible.builtin.command: >
+      ansible.builtin.command:
         kubectl annotate nodes {{ hostvars[item].node_name }}
         node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data",
         "allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]' --overwrite
@@ -46,8 +46,9 @@
 - name: "Verify mounted filesystems"
   block:
     - name: "Check current annotations of the storage class"
-      ansible.builtin.command: >
-        kubectl get storageclass local-path -o jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
+      ansible.builtin.command:
+        kubectl get storageclass local-path -o
+        jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
       register: storage_class_flag
 
     - name: "Check if local-path is default"
@@ -59,7 +60,7 @@
         var: is_default_class
 
     - name: "Remove the default flag from the local-provisioner"
-      ansible.builtin.command: >
+      ansible.builtin.command:
         kubectl patch storageclass local-path -p
         '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
       # when: current_default_flag.stdout == 'true'
@@ -68,7 +69,7 @@
 - name: "Preconfig script"
   block:
     - name: "Run the preconfig script"
-      ansible.builtin.shell: >
+      ansible.builtin.shell:
         curl -sSfL
         https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/scripts/environment_check.sh
         | bash
@@ -81,7 +82,7 @@
 - name: "Apply label worker"
   block:
     - name: "Apply label node-role.kubernetes.io/worker=worker"
-      ansible.builtin.command: >
+      ansible.builtin.command:
         kubectl label nodes {{ hostvars[item].node_name }}
         node-role.kubernetes.io/worker='worker' --overwrite
       register: label_check

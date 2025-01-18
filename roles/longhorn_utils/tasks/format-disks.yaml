@@ -46,7 +46,8 @@
   register: result
   changed_when: false
 
-- ansible.builtin.debug:
+- name: "Debug"
+  ansible.builtin.debug:
     var: result.stdout_lines
 
 - name: "Add entry to '/etc/fstab' for LABEL=data"
@@ -63,7 +64,8 @@
   register: fstab_stat
 
 - name: "Reload systemd to apply fstab changes"
-  ansible.builtin.command: systemctl daemon-reload
+  ansible.builtin.command:
+    systemctl daemon-reload
   when: fstab_stat.changed
 
 - name: "Create directory /mnt/data"
