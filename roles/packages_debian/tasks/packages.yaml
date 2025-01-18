@@ -1,6 +1,9 @@
 ---
 - name: "Update and upgrade Debian packages"
   block:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
     - name: "Ensure /etc/apt/apt.conf.d/00aptproxy exists with correct content"
       ansible.builtin.template:
         src: apt-cacher.conf.j2
@@ -49,18 +52,26 @@
       ansible.builtin.apt:
         upgrade: true
 
-    - name: "Start the systemd service for qemu-guest-agent if it is not started"
+
+    - name: Check if qemu-guest-agent is installed
+      ansible.builtin.command: systemctl is-active qemu-guest-agent || echo "inactive"
+      register: qga_status
+
+    - name: "Start qemu-guest-agent if it is not running"
       ansible.builtin.systemd:
         name: qemu-guest-agent
         enabled: true
         state: started
-      when: ansible_facts.services['qemu-guest-agent'].state != 'running'
+      # when: ansible_facts.services['qemu-guest-agent'].state != 'running'
+      # when: "'qemu-guest-agent' in ansible_facts.services and ansible_facts.services['qemu-guest-agent'].state != 'running'"
+      when: qga_status.stdout != 'active'
 
     - name: "Ensure iscsi_tcp is present in /etc/modules"
       ansible.builtin.lineinfile:
         path: /etc/modules
         line: 'iscsi_tcp'
         state: present
+      when: "'iscsi_tcp' in ansible_facts.services and ansible_facts.services['iscsi_tcp'].state != 'running'"
 
     - name: "Remove nfs-common service file"
       ansible.builtin.file:
@@ -71,22 +82,33 @@
       ansible.builtin.systemd:
         daemon_reload: true
 
+    - name: Check if nfs-common is installed
+      ansible.builtin.command: systemctl is-active nfs-common || echo "inactive"
+      register: nfs_status
+
     - name: "Start the systemd service for nfs-common if it is not started"
       ansible.builtin.systemd:
         name: nfs-common
         enabled: true
         state: started
+      when: qga_status.stdout != 'active'
+      # when: "'nfs-common' in ansible_facts.services and ansible_facts.services['nfs-common'].state != 'running'"
 
     - name: "Load the kernel module"
       community.general.modprobe:
         name: iscsi_tcp
         state: present
 
+    - name: Check if iscsid is installed
+      ansible.builtin.command: systemctl is-active iscsid || echo "inactive"
+      register: iscsid_status
+
     - name: "Start the systemd service for iscsid if it is not started"
       ansible.builtin.systemd:
         name: iscsid
         enabled: true
         state: started
+      when: iscsid_status.stdout != 'active'
 
     - name: "Check if a reboot is required"
       ansible.builtin.stat:
