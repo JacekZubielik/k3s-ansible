@@ -37,7 +37,8 @@
     - name: "Apply annotation default-disks-config for data and database on storage nodes"
       ansible.builtin.command: >
         kubectl annotate nodes {{ hostvars[item].node_name }}
-        node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data","allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]' --overwrite
+        node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data",
+        "allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]' --overwrite
       register: annotation_check
       changed_when: "'already has' not in annotation_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"

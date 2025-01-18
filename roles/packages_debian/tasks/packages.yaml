@@ -1,7 +1,7 @@
 ---
 - name: "Update and upgrade Debian packages"
   block:
-    - name: Gather service facts
+    - name: "Gather service facts"
       ansible.builtin.service_facts:
 
     - name: "Ensure /etc/apt/apt.conf.d/00aptproxy exists with correct content"
@@ -84,7 +84,7 @@
       ansible.builtin.systemd:
         daemon_reload: true
 
-    - name: Check if nfs-common is installed
+    - name: "Check if nfs-common is installed"
       ansible.builtin.command: systemctl is-active nfs-common || echo "inactive"
       register: nfs_status
 
@@ -106,13 +106,13 @@
       register: iscsi_tcp_loaded
       failed_when: false
       changed_when: false
-      check_mode: no
+      check_mode: false
 
     - name: "Debug iscsi_tcp module status"
       ansible.builtin.debug:
         msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
 
-    - name: Check if iscsid is installed
+    - name: "Check if iscsid is installed"
       ansible.builtin.command: systemctl is-active iscsid || echo "inactive"
       register: iscsid_status
 
