@@ -56,6 +56,11 @@
         kubectl get storageclass local-path -o
         jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
       register: storage_class_flag
+      changed_when: false
+
+
+
+
 
     - name: "Check if local-path is default"
       ansible.builtin.set_fact:
