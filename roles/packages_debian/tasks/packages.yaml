@@ -114,6 +114,18 @@
         state: started
       when: nfs_service_status.status != 'started'
 
+    - name: Check nfs-common service status
+      ansible.builtin.systemd:
+        name: nfs-common
+        state: started
+      register: nfs_service_status
+      changed_when: false
+
+    - name: Debug nfs-common service status
+      ansible.builtin.debug:
+        msg: "nfs-common service is {{ 'started' if nfs_service_status.status == 'started' else 'not started' }}"
+
+
     # - name: "Debug iscsi_tcp module status"
     #   ansible.builtin.debug:
     #     msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
