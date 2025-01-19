@@ -16,10 +16,10 @@ repos:
     hooks:
       - id: yamllint
         args: [-c=.yamllint]
-  # - repo: https://github.com/ansible-community/ansible-lint.git
-  #   rev: v24.12.2
-  #   hooks:
-  #     - id: ansible-lint
+  - repo: https://github.com/ansible-community/ansible-lint.git
+    rev: v24.12.2
+    hooks:
+      - id: ansible-lint
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
     hooks:

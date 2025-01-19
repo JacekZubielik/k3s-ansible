@@ -3,3 +3,6 @@ kubeconfig
 **-off
 sample
 cache
+collections
+usr
+k3s-ansible

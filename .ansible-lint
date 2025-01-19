@@ -1,5 +1,5 @@
 ---
-# profile: min
+profile: min
 exclude_paths:
   # default paths
   - .cache/
