@@ -69,7 +69,7 @@ enable_list:
   - no-log-password # opt-in
   - no-same-owner # opt-in
   - name[prefix] # opt-in
-  - galaxy-version-incorrect # opt-in
+  # - galaxy-version-incorrect # opt-in
   # add yaml here if you want to avoid ignoring yaml checks when yamllint
   # library is missing. Normally its absence just skips using that rule.
   - yaml
@@ -133,5 +133,5 @@ task_name_prefix: "{stem} | "
 # max_block_depth: 20
 
 # Also recognize these versions of Ansible as supported:
-supported_ansible_also:
-  - "2.14"
+# supported_ansible_also:
+#   - "2.14"
