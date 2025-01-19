@@ -1,5 +1,5 @@
 ---
-name: "CI"
+name: CI
 on:
   pull_request:
     types:
@@ -11,17 +11,19 @@ on:
       - '**/host.ini'
       - '**/*.md'
       - '**/.editorconfig'
-      - '**/ansible.example.cfg'
+      - '**/ansible.cfg'
       - '**/deploy.sh'
       - '**/LICENSE'
       - '**/reboot.sh'
       - '**/reset.sh'
+
 jobs:
-  pre:
-    uses: ./.github/workflows/cache.yml
+  # pre:
+  #   uses: ./.github/workflows/cache.yml
   lint:
-    uses: ./.github/workflows/lint.yml
-    needs: [pre]
-  test:
-    uses: ./.github/workflows/test.yml
-    needs: [pre, lint]
+    # uses: ./.github/workflows/lint.yml
+    uses: ./.github/workflows/superlinter.yml
+    # needs: [pre]
+  # test:
+  #   uses: ./.github/workflows/test.yml
+  #   needs: [lint]

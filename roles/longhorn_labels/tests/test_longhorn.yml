@@ -12,7 +12,7 @@
 
     - name: Create PVC and testing pod
       kubernetes.core.k8s:
-        definition: "{{ lookup('template', 'templates/' + item ) }}"
+        definition: "{{ lookup('template', 'templates/' + item) }}"
         state: present
       with_items:
         - testing_longhorn_manifest.yml

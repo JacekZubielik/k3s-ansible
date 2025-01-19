@@ -1,10 +1,26 @@
 ---
-- name: System Configuration (2) | Disable swap at runtime
-  ansible.builtin.command: swapoff -a
-  when: ansible_swaptotal_mb > 0
-- name: System Configuration (2) | Disable swap at boot
+- name: "Check if swap is active"
+  ansible.builtin.shell:
+    cmd: |
+      swapon --show
+  register: swap_active
+  failed_when: false
+  changed_when: false
+
+- name: "Disable swap at runtime"
+  ansible.builtin.shell:
+    cmd: |
+      swapoff -a
+  when: swap_active.rc == 0
+  register: swapoff_loaded
+  failed_when: false
+  changed_when: false
+
+- name: "Disable swap at boot"
   ansible.posix.mount:
     name: "{{ item }}"
     fstype: swap
     state: absent
-  loop: ["none", "swap"]
+  # loop: ["none", "swap"]
+  loop: "{{ lookup('file', '/etc/fstab').split('\n') | map('regex_search',
+        '^([^\\s]+)\\s+swap\\s+') | map('regex_replace', '^([^\\s]+)\\s+swap\\s+.*', '\\1') | list }}"

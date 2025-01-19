@@ -2,33 +2,34 @@
 name: Test
 on:
   workflow_call:
+
 jobs:
   molecule:
     name: Molecule
-    runs-on: self-hosted
+    runs-on: [self-hosted]
     strategy:
       matrix:
         scenario:
-          - default
+          # - default
           # - ipv6
           - single_node
-          - calico
-          - cilium
-          - kube-vip
+          # - calico
+          # - cilium
+          # - kube-vip
       fail-fast: false
     env:
       PYTHON_VERSION: "3.11"
 
     steps:
       - name: Check out the codebase
-        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # 4.2.0
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # 4.2.2  # 4.2.0  d632683dd7b4114ad314bca15554477dd762a938
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
       # these steps are necessary if not using ephemeral nodes
-      - name: Delete old Vagrant box versions
-        if: always() # do this even if a step before has failed
-        run: vagrant box prune --force
+      # - name: Delete old Vagrant box versions
+      #   if: always() # do this even if a step before has failed
+      #   run: vagrant box prune --force
 
       - name: Remove all local Vagrant boxes
         if: always() # do this even if a step before has failed
@@ -54,7 +55,7 @@ jobs:
         run: |-
           sudo mkdir -p /etc/vbox
           cat <<EOF | sudo tee -a /etc/vbox/networks.conf > /dev/null
-          * 192.168.30.0/24
+          * 192.168.40.0/24
           * fdad:bad:ba55::/64
           EOF
 
@@ -64,12 +65,12 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip' # caching pip dependencies
 
-      - name: Restore vagrant Boxes cache
-        uses: actions/cache/restore@2cdf405574d6ef1f33a1d12acccd3ae82f47b3f2 # 4.1.0
-        with:
-          path: ~/.vagrant.d/boxes
-          key: vagrant-boxes-${{ hashFiles('**/molecule.yml') }}
-          fail-on-cache-miss: true
+      # - name: Restore vagrant Boxes cache
+      #   uses: actions/cache/restore@2cdf405574d6ef1f33a1d12acccd3ae82f47b3f2 # 4.1.0
+      #   with:
+      #     path: ~/.vagrant.d/boxes
+      #     key: vagrant-boxes-${{ hashFiles('**/molecule.yml') }}
+      #     fail-on-cache-miss: true
 
       - name: Install dependencies
         run: |

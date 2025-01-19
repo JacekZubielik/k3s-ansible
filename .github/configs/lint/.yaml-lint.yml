@@ -1,0 +1,69 @@
+---
+extends: default
+
+# rules:
+#   comments:
+#     min-spaces-from-content: 1
+#   comments-indentation: false
+#   braces:
+#     max-spaces-inside: 1
+#   octal-values:
+#     forbid-implicit-octal: true
+#     forbid-explicit-octal: true
+#   line-length:
+#     max: 220
+#     level: warning
+#   trailing-spaces: false
+#   truthy:
+#     allowed-values: ["true", "false"]
+
+ignore:
+  - galaxy.yml
+  - collections/
+
+rules:
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 0
+    min-spaces-inside-empty: -1
+    max-spaces-inside-empty: -1
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 0
+    min-spaces-inside-empty: -1
+    max-spaces-inside-empty: -1
+  colons:
+    level: warning
+    max-spaces-before: 0
+    max-spaces-after: 1
+  commas:
+    max-spaces-before: 0
+    min-spaces-after: 1
+    max-spaces-after: 1
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 1
+  document-end: disable
+  document-start:
+    level: warning
+    present: true
+  empty-lines:
+    level: warning
+    max: 1
+    max-start: 0
+    max-end: 0
+  hyphens:
+    level: warning
+    max-spaces-after: 1
+  indentation:
+    spaces: consistent
+    indent-sequences: whatever # - list indentation will handle both indentation and without
+    check-multi-line-strings: false
+  key-duplicates: enable
+  line-length: disable # Lines can be any length
+  new-line-at-end-of-file: enable
+  new-lines:
+    type: unix
+  trailing-spaces: enable
+  truthy:
+    level: warning

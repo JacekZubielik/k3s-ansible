@@ -1,120 +1,173 @@
 ---
-- name: Update and upgrade Debian packages, Install non-free firmware, Intel GPU tools and other tools.
+- name: "Update and upgrade Debian packages"
   block:
-  # - name: Ensure multipath.conf exists with correct content
-  #   template:
-  #     src: multipath.conf.j2
-  #     dest: /etc/multipath.conf
-  #     mode: '0644'
+    - name: "Gather service facts"
+      ansible.builtin.service_facts:
 
-  # - name: Ensure hostspath.conf exists with correct content
-  #   template:
-  #     src: hostspath.conf.j2
-  #     dest: /etc/hosts
-  #     mode: '0644'
+    - name: "Ensure /etc/apt/apt.conf.d/00aptproxy exists with correct content"
+      ansible.builtin.template:
+        src: apt-cacher.conf.j2
+        dest: /etc/apt/apt.conf.d/00aptproxy
+        mode: '0644'
+      register: aptproxy_check
+      loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
 
-  - name: Ensure /etc/apt/apt.conf.d/00aptproxy exists with correct content
-    template:
-      src: apt-cacher.conf.j2
-      dest: /etc/apt/apt.conf.d/00aptproxy
-      mode: '0644'
+    - name: "Ensure non-free repository is enabled"
+      ansible.builtin.lineinfile:
+        path: /etc/apt/sources.list
+        line: "deb http://deb.debian.org/debian/ bookworm main contrib non-free
+          non-free-firmware"
+        state: present
 
-  - name: Ensure non-free repository is enabled
-    lineinfile:
-      path: /etc/apt/sources.list
-      line: "deb http://deb.debian.org/debian/ bookworm main contrib non-free
-        non-free-firmware"
-      state: present
+    - name: "Update apt repository cache"
+      ansible.builtin.apt:
+        update_cache: true
 
-  - name: Update apt repository cache
-    apt:
-      update_cache: yes
+    - name: "Install required packages"
+      ansible.builtin.apt:
+        pkg:
+          - cryptsetup
+          - dnsutils
+          - firmware-misc-nonfree
+          - iotop
+          - iperf
+          - iptables
+          - jq
+          - mc
+          - neofetch
+          - nfs-common
+          - nmap
+          - open-iscsi
+          - parted
+          - qemu-guest-agent
+          - util-linux
+          - vim
+        state: present
 
-  - name: Install required packages
-    apt:
-      pkg:
-      - cryptsetup
-      - dnsutils
-      - firmware-misc-nonfree
-      # - intel-gpu-tools
-      # - intel-media-va-driver-non-free
-      - iotop
-      - iperf
-      - iptables
-      - jq
-      - mc
-      - neofetch
-      - nfs-common
-      - nmap
-      - open-iscsi
-      - parted
-      - qemu-guest-agent
-      - util-linux
-      - vim
-      state: present
+    - name: "Ensure neofetch exists with correct content"
+      ansible.builtin.lineinfile:
+        path: /home/ansible/.bashrc
+        line: "neofetch"
+        state: present
 
-  - name: Ensure neofetch exists with correct content
-    lineinfile:
-      path: /home/ansible/.bashrc
-      line: "neofetch"
-      state: present
+    - name: "Upgrade all packages to the latest version"
+      ansible.builtin.apt:
+        upgrade: true
 
-  - name: Upgrade all packages to the latest version
-    apt:
-      upgrade: yes
+- name: "Check system"
+  block:
+    - name: "Check status of qemu-guest-agent"
+      ansible.builtin.systemd:
+        name: qemu-guest-agent
+        state: started
+      register: qga_status
+      changed_when: false
+      check_mode: false
 
-  - name: Start the systemd service for qemu-guest-agent if it is not started
-    systemd:
-      name: qemu-guest-agent
-      enabled: yes
-      state: started
+    - name: "Start qemu-guest-agent if it is not running"
+      ansible.builtin.systemd:
+        name: qemu-guest-agent
+        enabled: true
+        state: started
+      when: qga_status.status != 'started'
 
-  # - name: Install specific kernel image
-  #   apt:
-  #     name: linux-image-6.10.6+bpo-cloud-amd64
-  #     state: present
+    - name: "Ensure iscsi_tcp is present in /etc/modules"
+      ansible.builtin.lineinfile:
+        path: /etc/modules
+        line: 'iscsi_tcp'
+        state: present
+      when: "'iscsi_tcp' in ansible_facts.services and ansible_facts.services['iscsi_tcp'].state != 'running'"
 
-  - name: Ensure iscsi_tcp is present in /etc/modules
-    lineinfile:
-      path: /etc/modules
-      line: 'iscsi_tcp'
-      state: present
+    - name: "Remove nfs-common service file"
+      ansible.builtin.file:
+        path: /lib/systemd/system/nfs-common.service
+        state: absent
 
-  - name: Remove nfs-common service file
-    file:
-      path: /lib/systemd/system/nfs-common.service
-      state: absent
+    - name: "Reload systemd daemon"
+      ansible.builtin.systemd:
+        daemon_reload: true
 
-  - name: Reload systemd daemon
-    command: systemctl daemon-reload
+    - name: Gather service facts
+      ansible.builtin.service_facts:
 
-  - name: Start the systemd service for nfs-common if it is not started
-    systemd:
-      name: nfs-common
-      enabled: yes
-      state: started
+    - name: "Check if nfs-common is installed"
+      ansible.builtin.package:
+        name: nfs-common
+        state: present
+      register: nfs_package
+      check_mode: false
 
-  - name: Load the kernel module
-    modprobe:
-      name: iscsi_tcp
-      state: present
+    - name: Check nfs-common service status
+      ansible.builtin.systemd:
+        name: nfs-common
+        state: started
+      register: nfs_service_status
+      changed_when: false
 
-  - name: Start the systemd service for iscsid if it is not started
-    systemd:
-      name: iscsid
-      enabled: yes
-      state: started
+    - name: Debug nfs-common service status
+      ansible.builtin.debug:
+        msg: "nfs-common service is {{ 'started' if nfs_service_status.status == 'started' else 'not started' }}"
 
-  - name: Check if a reboot is required
-    stat:
-      path: /var/run/reboot-required
-    register: reboot_required_file
+    - name: Ensure nfs-common service is started
+      ansible.builtin.systemd:
+        name: nfs-common
+        state: started
+      when: nfs_service_status.status != 'started'
 
-  - name: Reboot the server if required
-    reboot:
-      msg: "Reboot initiated by Ansible for package updates"
-    when: reboot_required_file.stat.exists
+    # - name: "Debug iscsi_tcp module status"
+    #   ansible.builtin.debug:
+    #     msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
 
-  - name: Autoremove unnecessary packages
-    apt:
-      autoremove: yes
+    - name: "Load iscsi_tcp kernel module"
+      community.general.modprobe:
+        name: iscsi_tcp
+        state: present
+      loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
+
+    - name: "Check if iscsi_tcp module is loaded"
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          lsmod | grep -q iscsi_tcp
+      register: iscsi_tcp_loaded
+      failed_when: false
+      changed_when: false
+      check_mode: false
+
+    - name: "Debug iscsi_tcp module status"
+      ansible.builtin.debug:
+        msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
+
+    - name: "Check if iscsid is installed"
+      ansible.builtin.systemd:
+        name: iscsid
+        state: started
+        enabled: true
+      register: iscsid_status
+      check_mode: false
+
+    - name: "Start the systemd service for iscsid if it is not started"
+      ansible.builtin.systemd:
+        name: iscsid
+        enabled: true
+        state: started
+      when: iscsid_status.status != 'active'
+
+    - name: "Check if a reboot is required"
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required_file
+
+    - name: "Reboot the server if required"
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible for package updates"
+      when: reboot_required_file.stat.exists
+
+    - name: "Autoremove unnecessary packages"
+      ansible.builtin.apt:
+        autoremove: true
+
+  rescue:
+    - name: "Handle any errors in block"
+      ansible.builtin.debug:
+        msg: "An error occurred in the block."

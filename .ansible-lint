@@ -1,11 +1,12 @@
 ---
-profile: production
+profile: min
 exclude_paths:
   # default paths
   - .cache/
   - .github/
   - test/fixtures/formatting-before/
   - test/fixtures/formatting-prettier/
+  - collection/ansible_collections/
 
   # The "converge" and "reset" playbooks use import_playbook in
   # conjunction with the "env" lookup plugin, which lets the

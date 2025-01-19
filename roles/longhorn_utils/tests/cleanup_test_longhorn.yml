@@ -12,7 +12,7 @@
 
     - name: Create Ingress rule for Longhorn UI
       kubernetes.core.k8s:
-        definition: "{{ lookup('template', 'templates/' + item ) }}"
+        definition: "{{ lookup('template', 'templates/' + item) }}"
         state: absent
       with_items:
         - testing_longhorn_manifest.yml
