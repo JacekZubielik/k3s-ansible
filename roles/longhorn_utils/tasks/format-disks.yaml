@@ -68,6 +68,7 @@
   ansible.builtin.stat:
     path: /etc/fstab
   register: fstab_stat
+  notify: reload systemd
 
 - name: "Reload systemd to apply fstab changes"
   ansible.builtin.systemd:
