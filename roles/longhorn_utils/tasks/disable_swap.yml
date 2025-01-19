@@ -16,11 +16,6 @@
   failed_when: false
   changed_when: false
 
-
-
-
-
-
 - name: "Disable swap at boot"
   ansible.posix.mount:
     name: "{{ item }}"
