@@ -18,11 +18,11 @@ on:
       - '**/reset.sh'
 
 jobs:
-  pre:
-    uses: ./.github/workflows/cache.yml
+  # pre:
+  #   uses: ./.github/workflows/cache.yml
   lint:
     uses: ./.github/workflows/superlinter.yml
-    needs: [pre]
-  # test:
-  #   uses: ./.github/workflows/test.yml
-  #   needs: [lint]
+    # needs: [pre]
+  test:
+    uses: ./.github/workflows/test.yml
+    needs: [lint]
