@@ -1,7 +1,7 @@
 ---
 # .ansible-lint
 
-profile: null # min, basic, moderate,safety, shared, production
+profile: production # min, basic, moderate,safety, shared, production
 
 # Allows dumping of results in SARIF format
 # sarif_file: result.sarif
@@ -13,6 +13,7 @@ exclude_paths:
   - .cache/ # implicit unless exclude_paths is defined in config
   - test/fixtures/formatting-before/
   - test/fixtures/formatting-prettier/
+  - collections/ansible_collections/
 # parseable: true
 # quiet: true
 # strict: true
@@ -125,5 +126,5 @@ task_name_prefix: "{stem} | "
 # max_block_depth: 20
 
 # Also recognize these versions of Ansible as supported:
-# supported_ansible_also:
-#   - "2.14"
+supported_ansible_also:
+  - "2.14"
