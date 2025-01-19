@@ -78,14 +78,17 @@
       register: script_download
 
     - name: "Run the preconfig script"
-      ansible.builtin.shell:
-        "/tmp/environment_check.sh"
+      ansible.builtin.command:
+        cmd: "/tmp/environment_check.sh"
       when: script_download.changed or not script_download.changed
       register: script_check
+      loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
     - name: "Print output from script_check"
       ansible.builtin.debug:
-        msg="{{ script_check.stdout }}"
+        msg: "{{ item.stdout if item.stdout is defined else 'No output or script failed' }}"
+      loop: "{{ script_check.results }}"
+      when: script_check.changed
 
 - name: "Apply label worker"
   block:
@@ -96,19 +99,6 @@
       register: label_check
       changed_when: "'already has' not in label_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
-
-# - name: "Apply label node-role.kubernetes.io/worker=worker"
-#   kubernetes.core.k8s:
-#     api_version: v1
-#     kind: Node
-#     name: "{{ hostvars[item].node_name }}"
-#     merge_type: "merge"
-#     resource_definition:
-#       metadata:
-#         labels:
-#           node-role.kubernetes.io/worker: "worker"
-#   register: label_check
-  # loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
 
 # - name: "Debug label application result"
 #   ansible.builtin.debug:

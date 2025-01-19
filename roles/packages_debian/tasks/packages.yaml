@@ -98,17 +98,25 @@
       check_mode: false
 
     - name: Check nfs-common service status
-      ansible.builtin.command:
-        systemctl is-active nfs-common
+      ansible.builtin.systemd:
+        name: nfs-common
+        state: started
+        msg: "nfs-common module is {{ 'started' if nfs-common_started.rc == 0 else 'not started' }}"
       register: nfs_service_status
       changed_when: false
-      ignore_errors: true
 
     - name: Ensure nfs-common service is started
       ansible.builtin.systemd:
         name: nfs-common
         state: started
-      when: nfs_service_status.stdout != 'active'
+      when: nfs_service_status.stdout !='started'
+
+    - name: "Debug iscsi_tcp module status"
+      ansible.builtin.debug:
+        msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
+
+
+
 
     - name: "Load iscsi_tcp kernel module"
       community.general.modprobe:

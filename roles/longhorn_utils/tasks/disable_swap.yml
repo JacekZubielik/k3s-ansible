@@ -1,14 +1,25 @@
 ---
 - name: "Check if swap is active"
-  ansible.builtin.command: >
-    swapon --show
+  ansible.builtin.shell:
+    cmd: |
+      swapon --show
   register: swap_active
   failed_when: false
   changed_when: false
 
 - name: "Disable swap at runtime"
-  ansible.builtin.command: swapoff -a
-  when: swap_active.rc == 0  # Only if swap is active
+  ansible.builtin.shell:
+    cmd: |
+      swapoff -a
+  when: swap_active.rc == 0
+  register: swapoff_loaded
+  failed_when: false
+  changed_when: false
+
+
+
+
+
 
 - name: "Disable swap at boot"
   ansible.posix.mount:

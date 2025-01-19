@@ -70,9 +70,15 @@
   register: fstab_stat
 
 - name: "Reload systemd to apply fstab changes"
-  ansible.builtin.command:
-    systemctl daemon-reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+  register: systemd_reload_result
   when: fstab_stat.changed
+
+- name: "Ensure systemd reload was successful"
+  ansible.builtin.fail:
+    msg: "Systemd daemon-reload failed with message: {{ systemd_reload_result.msg }}"
+  when: systemd_reload_result is failed
 
 - name: "Ensure if partition is mounted"
   ansible.posix.mount:
