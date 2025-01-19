@@ -79,7 +79,7 @@ provisioner:
     verify: ../resources/verify.yml
   inventory:
     links:
-      group_vars: ../../inventory/sample/group_vars
+      group_vars: ../../inventory/group_vars
 scenario:
   test_sequence:
     - dependency

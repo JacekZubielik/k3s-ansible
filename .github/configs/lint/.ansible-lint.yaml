@@ -2,23 +2,14 @@
 # .ansible-lint
 
 profile: min # min, basic, moderate,safety, shared, production
-
-# Allows dumping of results in SARIF format
-# sarif_file: result.sarif
-
-# exclude_paths included in this file are parsed relative to this file's location
-# and not relative to the CWD of execution. CLI arguments passed to the --exclude
-# option are parsed relative to the CWD of execution.
 exclude_paths:
-  - .cache/ # implicit unless exclude_paths is defined in config
+  - .cache/
   - test/fixtures/formatting-before/
   - test/fixtures/formatting-prettier/
   - collections/ansible_collections/
-
   - molecule/**/converge.yml
   - molecule/**/prepare.yml
   - molecule/**/reset.yml
-
   - galaxy.yml
 
 # parseable: true
