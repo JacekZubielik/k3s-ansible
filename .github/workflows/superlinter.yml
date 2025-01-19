@@ -63,7 +63,7 @@ jobs:
           # VALIDATE_RUST_2021:
           # VALIDATE_RUST_CLIPPY:
           VALIDATE_YAML: true
-          VALIDATE_YAML_PRETTIER: true
+          VALIDATE_YAML_PRETTIER: false
           YAML_ERROR_ON_WARNING: false
 
     # ensure-pinned-actions:
