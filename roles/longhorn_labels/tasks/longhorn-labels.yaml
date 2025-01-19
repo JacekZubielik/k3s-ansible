@@ -45,22 +45,12 @@
 
 - name: "Verify mounted filesystems"
   block:
-    # - name: "Check current annotations of the storage class"
-    #   ansible.builtin.command:
-    #     kubectl get storageclass local-path -o
-    #     jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
-    #   register: storage_class_flag
-
     - name: "Check current annotations of the storage class"
       ansible.builtin.command:
         kubectl get storageclass local-path -o
         jsonpath='{.metadata.annotations.storageclass\.kubernetes\.io/is-default-class}'
       register: storage_class_flag
       changed_when: false
-
-
-
-
 
     - name: "Check if local-path is default"
       ansible.builtin.set_fact:
@@ -106,3 +96,21 @@
       register: label_check
       changed_when: "'already has' not in label_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
+
+# - name: "Apply label node-role.kubernetes.io/worker=worker"
+#   kubernetes.core.k8s:
+#     api_version: v1
+#     kind: Node
+#     name: "{{ hostvars[item].node_name }}"
+#     merge_type: "merge"
+#     resource_definition:
+#       metadata:
+#         labels:
+#           node-role.kubernetes.io/worker: "worker"
+#   register: label_check
+  # loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
+
+# - name: "Debug label application result"
+#   ansible.builtin.debug:
+#     var: label_check
+#   loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"

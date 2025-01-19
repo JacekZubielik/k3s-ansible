@@ -91,15 +91,25 @@
     owner: nobody
     group: nogroup
 
-- name: Ensure all filesystems in /etc/fstab are mounted
-  ansible.posix.mount:
-    path: "{{ item }}"
-    state: mounted
-  loop: "{{ ansible_mounts | map(attribute='mount') | list }}"
-  when: item not in ansible_mounts | map(attribute='mount') | list
+# - name: Ensure all filesystems in /etc/fstab are mounted
+#   ansible.posix.mount:
+#     path: "{{ item }}"
+#     state: mounted
+#   loop: "{{ ansible_mounts | map(attribute='mount') | list }}"
+#   when: item not in ansible_mounts | map(attribute='mount') | list
 
-- name: "Verify mounted filesystems"
+- name: Prepare data disks for storage before installing Longhorn
   block:
+    - name: Ensure all filesystems in /etc/fstab are mounted
+      ansible.posix.mount:
+        path: /mnt/data
+        state: mounted
+      loop: "{{ ansible_mounts | map(attribute='mount') | list }}"
+      when: item not in ansible_mounts | map(attribute='mount') | list
+
+
+# - name: "Verify mounted filesystems"
+#   block:
     # - name: "Check disk usage"
     #   ansible.builtin.command:
     #     df -h
@@ -110,9 +120,9 @@
     #   ansible.builtin.debug:
     #     msg: "{{ df_output.stdout }}"
 
-    - name: "Debug"
-      ansible.builtin.debug:
-        var: result.stdout_lines
+    # - name: "Debug"
+    #   ansible.builtin.debug:
+    #     var: result.stdout_lines
 
   rescue:
     - name: "Handle failure"

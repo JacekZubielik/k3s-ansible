@@ -136,7 +136,7 @@
         state: started
         enabled: true
       register: iscsid_status
-      check_mode: false  # Optional: Use this if you want to check without making changes
+      check_mode: false
 
     - name: "Start the systemd service for iscsid if it is not started"
       ansible.builtin.systemd:
