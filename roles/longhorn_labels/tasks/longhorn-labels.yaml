@@ -85,14 +85,23 @@
     #   register: script_check
     #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
+    # - name: "Run the preconfig script"
+    #   ansible.builtin.command:
+    #     cmd: |
+    #       "/tmp/environment_check.sh"
+    #   register: script_check
+    #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+    #   loop_control:
+    #     loop_var: server
+
     - name: "Run the preconfig script"
       ansible.builtin.command:
-        cmd: |
-          "/tmp/environment_check.sh"
+        cmd: "/tmp/environment_check.sh"
       register: script_check
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
       loop_control:
         loop_var: server
+      changed_when: script_check.stdout | length > 0  # Example condition; adjust as needed
 
     - name: "Print script output"
       ansible.builtin.debug:
