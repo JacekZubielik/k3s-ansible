@@ -49,7 +49,7 @@ jobs:
         env:
           DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LINTER_RULES_PATH: .github/configs/lint
+          LINTER_RULES_PATH: .ansible-lint
           FIX_ANSIBLE: false
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_ANSIBLE: true

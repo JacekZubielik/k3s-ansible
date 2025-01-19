@@ -23,6 +23,8 @@
     state: "mounted"
   register: mount_check
   changed_when: false
+  until: mount_check is succeeded
+  ignore_errors: true
 
 - name: "Ensure filesystem is on new partition"
   ansible.builtin.shell:
@@ -68,7 +70,7 @@
   ansible.builtin.stat:
     path: /etc/fstab
   register: fstab_stat
-  notify: reload systemd
+  notify: Reload systemd
 
 - name: "Reload systemd to apply fstab changes"
   ansible.builtin.systemd:
@@ -99,13 +101,6 @@
     owner: nobody
     group: nogroup
 
-# - name: Ensure all filesystems in /etc/fstab are mounted
-#   ansible.posix.mount:
-#     path: "{{ item }}"
-#     state: mounted
-#   loop: "{{ ansible_mounts | map(attribute='mount') | list }}"
-#   when: item not in ansible_mounts | map(attribute='mount') | list
-
 - name: Prepare data disks for storage before installing Longhorn
   block:
     - name: Ensure all filesystems in /etc/fstab are mounted
@@ -114,23 +109,6 @@
         state: mounted
       loop: "{{ ansible_mounts | map(attribute='mount') | list }}"
       when: item not in ansible_mounts | map(attribute='mount') | list
-
-
-# - name: "Verify mounted filesystems"
-#   block:
-    # - name: "Check disk usage"
-    #   ansible.builtin.command:
-    #     df -h
-    #   register: df_output
-    #   changed_when: false
-
-    # - name: "Display mounted filesystems"
-    #   ansible.builtin.debug:
-    #     msg: "{{ df_output.stdout }}"
-
-    # - name: "Debug"
-    #   ansible.builtin.debug:
-    #     var: result.stdout_lines
 
   rescue:
     - name: "Handle failure"
