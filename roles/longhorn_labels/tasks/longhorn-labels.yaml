@@ -77,18 +77,27 @@
         mode: '0755'
       register: script_download
 
+    # - name: "Run the preconfig script"
+    #   ansible.builtin.command:
+    #     cmd: |
+    #       "/tmp/environment_check.sh"
+    #   when: script_download.changed or not script_download.changed
+    #   register: script_check
+    #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
     - name: "Run the preconfig script"
       ansible.builtin.command:
-        cmd: "/tmp/environment_check.sh"
-      when: script_download.changed or not script_download.changed
+        cmd: |
+          "/tmp/environment_check.sh"
       register: script_check
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+      loop_control:
+        loop_var: server
 
-    - name: "Print output from script_check"
+    - name: "Print script output"
       ansible.builtin.debug:
         msg: "{{ item.stdout if item.stdout is defined else 'No output or script failed' }}"
       loop: "{{ script_check.results }}"
-      when: script_check.changed
 
 - name: "Apply label worker"
   block:
