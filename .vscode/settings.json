@@ -1,3 +1,3 @@
 {
-  "ansible.python.interpreterPath": "/k8s-venv/bin/python3"
+  "ansible.python.interpreterPath": "/k3s-ansible/bin/python"
 }
