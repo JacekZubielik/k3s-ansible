@@ -1,5 +1,5 @@
 ---
-name: Bug
+name: Bug report
 description: Create a report to help us improve
 labels: ["tech-issues"]
 body:
@@ -12,11 +12,19 @@ body:
 
   - type: input
     attributes:
-      label: Name and Version
-      description: Name and version of the affected chart
-      placeholder: app_name 0.0.1
+      label: k3s_version
+      description: Version k3s
+      placeholder: v1.32.0+k3s1
     validations:
       required: true
+
+  - type: input
+    attributes:
+      label: apiserver_endpoint
+      description: apiserver endpoint IP addr
+      placeholder: 192.168.x.x
+    validations:
+      required: false
 
   - type: dropdown
     attributes:
@@ -25,6 +33,25 @@ body:
       options:
         - amd64
         - arm64
+        - amd64 / arm64
+
+  - type: dropdown
+    attributes:
+      label: What operating system are you using?
+      description: Choose the architecture of the host where the containers are executed
+      options:
+        - debian
+        - ubuntu
+        - mix
+
+  - type: dropdown
+    attributes:
+      label: What hardware are you using?
+      description: Choose the architecture of the host where the containers are executed
+      options:
+        - proxmox
+        - baremetal
+        - mix
 
   - type: textarea
     attributes:
@@ -36,7 +63,7 @@ body:
         3. Run '...'
         4. See error...
     validations:
-      required: true
+      required: false
 
   - type: textarea
     attributes:
