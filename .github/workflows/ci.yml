@@ -18,11 +18,21 @@ on:
       - '**/reset.sh'
 
 jobs:
-  # pre:
-  #   uses: ./.github/workflows/cache.yml
+  size:
+    uses: ./.github/workflows/label-size.yml
+
+  labeler:
+    uses: ./.github/workflows/labeler.yml
+    needs: [size]
+
+  sync:
+    uses: ./.github/workflows/sync-labels.yml
+    needs: [labeler]
+
   lint:
-    uses: ./.github/workflows/superlinter.yml
-    # needs: [pre]
-  # test:
-  #   uses: ./.github/workflows/test.yml
-  #   needs: [lint]
+    uses: ./.github/workflows/linter.yml
+    needs: [sync]
+
+  test:
+    uses: ./.github/workflows/test.yml
+    needs: [lint]
