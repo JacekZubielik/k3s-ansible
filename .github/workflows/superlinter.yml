@@ -1,0 +1,30 @@
+---
+name: SuperLint Code Base
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  pre-commit-ci:
+    name: Pre-Commit
+    runs-on: [self-hosted]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: super-linter
+        uses: docker://github/super-linter:slim-latest
+        env:
+          DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH: .github/linters
+          FIX_ANSIBLE: false
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_ANSIBLE: true
+          VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_PYTHON: true
+          VALIDATE_YAML: true

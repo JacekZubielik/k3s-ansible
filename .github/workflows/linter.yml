@@ -41,16 +41,3 @@ jobs:
 
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
-
-      - name: super-linter
-        uses: docker://github/super-linter:slim-latest
-        env:
-          DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LINTER_RULES_PATH: # .github/linters # .ansible-lint
-          FIX_ANSIBLE: false
-          VALIDATE_ALL_CODEBASE: false
-          VALIDATE_ANSIBLE: true
-          VALIDATE_GITHUB_ACTIONS: true
-          VALIDATE_PYTHON: true
-          VALIDATE_YAML: true
