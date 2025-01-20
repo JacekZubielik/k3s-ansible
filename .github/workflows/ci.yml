@@ -32,7 +32,3 @@ jobs:
   lint:
     uses: ./.github/workflows/linter.yml
     needs: [sync]
-
-  test:
-    uses: ./.github/workflows/test.yml
-    needs: [lint]

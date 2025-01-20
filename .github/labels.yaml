@@ -25,6 +25,21 @@
   description: >-
     Changes made in inventory directory
 
+- name: documentation
+  color: "009900"
+  description: >-
+    Changes made in documentation
+
+- name: feature
+  color: "009900"
+  description: >-
+    Feature
+
+- name: release
+  color: "009900"
+  description: >-
+    Changes made release
+
 # # Renovate
 - name: renovate/container
   color: "ffc300"
