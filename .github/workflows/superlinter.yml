@@ -1,16 +1,13 @@
 ---
-name: Lint Code Base
+name: SuperLint Code Base
 on:
   workflow_call:
-
   workflow_dispatch:
 
 jobs:
   pre-commit-ci:
     name: Pre-Commit
     runs-on: [self-hosted]
-    env:
-      PYTHON_VERSION: "3.11"
 
     steps:
       - name: Checkout Code
@@ -19,63 +16,15 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # 5.2.0
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip' # caching pip dependencies
-
-      - name: Restore Ansible cache
-        uses: actions/cache/restore@2cdf405574d6ef1f33a1d12acccd3ae82f47b3f2 # 4.1.0
-        with:
-          path: ~/.ansible/collections
-          key: ansible-${{ hashFiles('collections/requirements.yml') }}
-
-      - name: Install dependencies
-        run: |
-          echo "::group::Upgrade pip"
-          python3 -m pip install --upgrade pip
-          echo "::endgroup::"
-
-          echo "::group::Install Python requirements from requirements.txt"
-          python3 -m pip install -r requirements.txt
-          echo "::endgroup::"
-
-      - name: Run pre-commit
-        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # 3.1.0
-
-      - name: Lint Code Base
+      - name: super-linter
         uses: docker://github/super-linter:slim-latest
         env:
           DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LINTER_RULES_PATH: .ansible-lint
+          LINTER_RULES_PATH: .github/linters
           FIX_ANSIBLE: false
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_ANSIBLE: true
-          # VALIDATE_BASH: false
           VALIDATE_GITHUB_ACTIONS: true
-          # VALIDATE_JSCPD: false
-          # VALIDATE_KUBERNETES_KUBEVAL: false
-          # VALIDATE_PYTHON: false
-          # VALIDATE_PYTHON_FLAKE8: false
-          # VALIDATE_PYTHON_BLACK: false
-          # VALIDATE_RUST_2021:
-          # VALIDATE_RUST_CLIPPY:
+          VALIDATE_PYTHON: true
           VALIDATE_YAML: true
-          VALIDATE_YAML_PRETTIER: false
-          YAML_ERROR_ON_WARNING: false
-
-    # ensure-pinned-actions:
-    #   name: Ensure SHA Pinned Actions
-    #   runs-on: self-hosted
-    #   steps:
-    #   - name: Checkout code
-    #     uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # 4.2.0
-
-    #   - name: Ensure SHA pinned actions
-    #     uses: zgosalvez/github-actions-ensure-sha-pinned-actions@b8f9a25a51fe633d9215ac7734854dc11cd299cb # 3.0.13
-    #     with:
-    #       allowlist: |
-    #         aws-actions/
-    #         docker/login-action

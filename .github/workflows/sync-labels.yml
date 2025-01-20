@@ -1,7 +1,7 @@
 ---
-name: Meta Sync labels
-
+name: Sync labels
 on:
+  workflow_call:
   workflow_dispatch:
   push:
     branches:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   labels:
-    name: Sync Labels
+    name: Sync labels
     runs-on: [self-hosted]
     steps:
       - name: Checkout
@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sync Labels
+      - name: Sync labels
         uses: EndBug/label-sync@52074158190acb45f3077f9099fea818aa43f97a # v2
         with:
           config-file: .github/labels.yaml

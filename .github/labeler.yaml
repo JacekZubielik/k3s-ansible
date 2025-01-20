@@ -1,5 +1,5 @@
 ---
-github_ci:
+ci:
   - changed-files:
       - any-glob-to-any-file: ".github/**/*"
 
@@ -18,3 +18,15 @@ makefile:
 inventory:
   - changed-files:
       - any-glob-to-any-file: "inventory/**/*"
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: '**/*.md'
+  - changed-files:
+    - any-glob-to-any-file: assets/*
+
+feature:
+  - head-branch: ['^feature', 'feature']
+
+release:
+  - base-branch: 'main'
