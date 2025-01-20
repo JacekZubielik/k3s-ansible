@@ -34,5 +34,5 @@ jobs:
     needs: [sync]
 
   superlint:
-    uses: ./.github/workflows/linter.yml
+    uses: ./.github/workflows/superlinter.yml
     needs: [lint]
