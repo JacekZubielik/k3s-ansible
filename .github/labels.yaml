@@ -87,8 +87,6 @@
 # Uncategorized
 - name: do-not-merge
   color: "ee0701"
-- name: docs
-  color: "F4D1B7"
 - name: enhancement
   color: "84b6eb"
 - name: link-checker

@@ -5,16 +5,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  pre-commit-ci:
-    name: Pre-Commit
+  lint_code_base-ci:
+    name: Lint Code Base
     runs-on: [self-hosted]
 
     steps:
-      # - name: Checkout Code
-      #   uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      #   with:
-      #     fetch-depth: 0
-      #     ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: super-linter
         uses: docker://github/super-linter:slim-latest
