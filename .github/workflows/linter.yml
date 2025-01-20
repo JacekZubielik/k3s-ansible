@@ -47,19 +47,10 @@ jobs:
         env:
           DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LINTER_RULES_PATH: / #.ansible-lint
+          LINTER_RULES_PATH: # .github/linters # .ansible-lint
           FIX_ANSIBLE: false
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_ANSIBLE: true
-          # VALIDATE_BASH: false
           VALIDATE_GITHUB_ACTIONS: true
-          # VALIDATE_JSCPD: false
-          # VALIDATE_KUBERNETES_KUBEVAL: false
           VALIDATE_PYTHON: true
-          VALIDATE_PYTHON_FLAKE8: false
-          VALIDATE_PYTHON_BLACK: false
-          # VALIDATE_RUST_2021:
-          # VALIDATE_RUST_CLIPPY:
           VALIDATE_YAML: true
-          VALIDATE_YAML_PRETTIER: false
-          YAML_ERROR_ON_WARNING: false
