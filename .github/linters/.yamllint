@@ -1,8 +1,18 @@
 ---
 extends: default
 
-ignore:
-  - galaxy.yml
+ignore: |
+  archive/
+  charts/
+  docs/
+  .private/
+  .vscode/
+  **/*.sec.*
+  **/*.sops.*
+  **/*.enc.*
+  **/*secret*.*
+  secret*.y*ml
+  galaxy.yml
 
 rules:
   comments:

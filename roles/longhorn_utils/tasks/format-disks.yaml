@@ -15,16 +15,16 @@
     unit: GB
   when: disk_info.partitions | map(attribute='num') | list | select('==', '1') | list | length == 0
 
-- name: "Ensure if partition is mounted"
-  ansible.posix.mount:
-    src: "/dev/vda1"
-    path: "/mnt/data"
-    fstype: "ext4"
-    state: "mounted"
-  register: mount_check
-  changed_when: false
-  until: mount_check is succeeded
-  ignore_errors: true
+# - name: "Ensure if partition is mounted"
+#   ansible.posix.mount:
+#     src: "/dev/vda1"
+#     path: "/mnt/data"
+#     fstype: "ext4"
+#     state: "mounted"
+#   register: mount_check
+#   changed_when: false
+#   until: mount_check is succeeded
+#   ignore_errors: true
 
 - name: "Ensure filesystem is on new partition"
   ansible.builtin.shell:
@@ -33,7 +33,7 @@
       df -T | grep /dev/vda1 || true
   register: filesystem
   failed_when: false
-  changed_when: false
+  # changed_when: false
 
 - name: "Ensure partition is unmounted"
   ansible.posix.mount:
@@ -50,7 +50,8 @@
     opts: -L data
     force: true
     state: present
-  when: filesystem.stdout | length == 0 or ('/dev/vda1' not in ansible_mounts|map(attribute='device')|list)
+  # when: filesystem.stdout | length == 0 or ('/dev/vda1' not in ansible_mounts|map(attribute='device')|list)
+  when: (filesystem.stdout | length == 0 or ('/dev/vda1' not in ansible_mounts | map(attribute='device') | list)) and (ansible_facts.filesystems['/dev/vda1'] is not defined)
 
 - name: "Verify filesystem label"
   ansible.builtin.command:
