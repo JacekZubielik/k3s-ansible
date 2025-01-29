@@ -7,7 +7,7 @@ on:
 jobs:
   lint_code_base-ci:
     name: Lint Code Base
-    runs-on: [self-hosted]
+    runs-on: [ubuntu-latest]
 
     steps:
       - name: Checkout Code
