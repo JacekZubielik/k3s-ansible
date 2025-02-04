@@ -26,10 +26,7 @@ Please check the following repository for more information:
 | [dev-k3s-lab-autopilot](https://github.com/JacekZubielik/dev-k3s-lab-autopilot) | Deploying applications to the clusters with  ArgoCD Autopilot.           |
 | [jz-helm-charts](https://github.com/JacekZubielik/jz-helm-charts)        | Personal Helm charts for applications deployed to the clusters           |
 
-
-
-<iframe id="odysee-iframe" style="width:100%; aspect-ratio:16 / 9;" src="https://odysee.com/$/embed/@dev-k3s-lab-autopilot:6/k3s-ansible:9?r=2exiFW5MjKi3cxzuB8VRhiE6E8khvcP8" allowfullscreen></iframe>
-
+[![Play movie](assets/images/play.png)](https://odysee.com/$/embed/@dev-k3s-lab-autopilot:6/k3s-ansible:9?r=2exiFW5MjKi3cxzuB8VRhiE6E8khvcP8)
 
 # Preparation for Installation
 
