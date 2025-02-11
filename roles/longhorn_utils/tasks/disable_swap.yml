@@ -21,6 +21,5 @@
     name: "{{ item }}"
     fstype: swap
     state: absent
-  # loop: ["none", "swap"]
   loop: "{{ lookup('file', '/etc/fstab').split('\n') | map('regex_search',
         '^([^\\s]+)\\s+swap\\s+') | map('regex_replace', '^([^\\s]+)\\s+swap\\s+.*', '\\1') | list }}"

@@ -18,10 +18,6 @@
   failed_when: false
   changed_when: false
 
-# - name: Deploy K3s http_proxy conf
-#   ansible.builtin.include_tasks: http_proxy.yml
-#   when: proxy_env is defined
-
 - name: Deploy vip manifest
   ansible.builtin.include_tasks: vip.yml
 - name: Deploy metallb manifest
