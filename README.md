@@ -38,14 +38,14 @@ In the case of **bare metal**, you need to provide a physical data medium for ea
 
 ```ini
 [master]
-dev-k3s-master-0.homelab.lan node_name=dev-k3s-master-0 host_key_checking=False
-dev-k3s-master-1.homelab.lan node_name=dev-k3s-master-1 host_key_checking=False
-dev-k3s-master-2.homelab.lan node_name=dev-k3s-master-2 host_key_checking=False
+dev-k3s-master-0.homelab.lan node_name=dev-k3s-master-0
+dev-k3s-master-1.homelab.lan node_name=dev-k3s-master-1
+dev-k3s-master-2.homelab.lan node_name=dev-k3s-master-2
 
 [node]
-dev-k3s-node-0.homelab.lan node_name=dev-k3s-node-0 host_key_checking=False
-dev-k3s-node-1.homelab.lan node_name=dev-k3s-node-1 host_key_checking=False
-dev-k3s-node-2.homelab.lan node_name=dev-k3s-node-2 host_key_checking=False
+dev-k3s-node-0.homelab.lan node_name=dev-k3s-node-0
+dev-k3s-node-1.homelab.lan node_name=dev-k3s-node-1
+dev-k3s-node-2.homelab.lan node_name=dev-k3s-node-2
 
 [k3s_cluster:children]
 master
@@ -93,37 +93,32 @@ The server and agent nodes must have SSH access configured without a password.
 
 ```ini
 [defaults]
-inventory                   = inventory/hosts.ini
-roles_path                  = ./roles:/usr/share/ansible/roles
-collections_path            = ./collections:/usr/share/ansible/collections
-stdout_callback             = yaml
-remote_tmp                  = $HOME/.ansible/tmp
-local_tmp                   = $HOME/.ansible/tmp
-timeout                     = 60
-callbacks_enabled           = profile_tasks
-callback_result_format      = yaml
-log_path                    = ./ansible.log
-host_key_checking           = false
-validate_certs              = false
-forks                       = 5
-interpreter_python          = auto_silent
-; vault_password_file         =./.vault/vault_pass.sh
-ansible_python_interpreter  = /k3s-ansible/bin/python
-hash_behaviour              = merge
-pipelining                  = True
-gathering                   = smart
-fact_caching                = jsonfile
-fact_caching_connection     = inventory/cache
-fact_caching_timeout        = 86400
-deprecation_warnings        = False
+ansible_python_interpreter = .venv/bin/python
+callback_result_format = yaml
+callbacks_enabled = profile_tasks
+collections_path = ./collections:/usr/share/ansible/collections
+fact_caching = jsonfile
+fact_caching_connection = inventory/cache
+fact_caching_timeout = 86400
+forks = 5
+gathering = smart
+hash_behaviour = merge
+inventory = inventory/hosts.ini
+local_tmp = $HOME/.ansible/tmp
+log_path = ./ansible.log
+pipelining = True
+remote_tmp = $HOME/.ansible/tmp
+roles_path = ./roles:/usr/share/ansible/roles
+stdout_callback = yaml
+timeout = 60
 
 [ssh_connection]
-scp_if_ssh = smart
-retries = 3
-ssh_args = -o ControlMaster=auto -o ControlPersist=30m -o Compression=yes -o ServerAliveInterval=15s
-pipelining = true
-control_path = %(directory)s/%%h-%%r
 ansible_ssh_private_key_file = ~/.ssh/id_rsa
+control_path = %(directory)s/%%h-%%r
+pipelining = true
+retries = 3
+scp_if_ssh = smart
+ssh_args = -o ControlMaster=auto -o ControlPersist=30m -o Compression=yes -o ServerAliveInterval=15s
 ```
 
 ## The Role of `packages_debian`
@@ -148,14 +143,10 @@ In this step, the parted module is used to create one large partition on the dis
 
 ```yaml
 - name: "Create single large partition filling the disk"
-  community.general.parted:
-    device: /dev/vda
-    number: 1
-    state: present
-    part_start: "0%"
-    part_end: "100%"
-    unit: GB
-  when: disk_info.partitions | map(attribute='num') | list | select('==', '1') | list | length == 0
+  ansible.builtin.command: >
+    parted /dev/vda -- mkpart primary 0% 100%
+  when: "'1' not in (debug_disk_info.stdout | regex_findall('^ 1'))"
+  ignore_errors: true
 ```
 
 ### Creating a File System
@@ -164,13 +155,10 @@ The aim of this task is to create an `ext4` file system on the device `/dev/vda1
 
 ```yaml
 - name: "Create filesystem on new partition before installing Longhorn"
-  community.general.filesystem:
-    fstype: ext4
-    dev: /dev/vda1
-    opts: -L data
-    force: true
-    state: present
-  when: (filesystem.stdout | length == 0 or ('/dev/vda1' not in ansible_mounts | map(attribute='device') | list)) and (ansible_facts.filesystems['/dev/vda1'] is not defined)
+  ansible.builtin.command: mkfs.ext4 -L data /dev/vda1
+  when:
+    - filesystem_check.stdout != "ext4"
+    - (filesystem_check.rc == 0 or filesystem_check.rc == 2)
 ```
 
 The results of the command are displayed using the `debug` module, which allows you to see if the label has been correctly assigned.
@@ -211,8 +199,8 @@ ok: [dev-k3s-node-2.homelab.lan] =>
 This step creates the directory `/mnt/data`, which will be used as a mount point for the new file system.
 
 ```yaml
-- name: Create directory /mnt/data
-  file:
+- name: "Create directory /mnt/data"
+  ansible.builtin.file:
     path: /mnt/data
     state: directory
     mode: '0777'
