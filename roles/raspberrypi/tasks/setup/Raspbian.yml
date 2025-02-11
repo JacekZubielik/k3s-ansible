@@ -37,13 +37,13 @@
     flush: true
 
 - name: Changing to iptables-legacy
-  community.general.alternatives:
+  ansible.builtin.alternatives:
     path: /usr/sbin/iptables-legacy
     name: iptables
   register: ip4_legacy
 
 - name: Changing to ip6tables-legacy
-  community.general.alternatives:
+  ansible.builtin.alternatives:
     path: /usr/sbin/ip6tables-legacy
     name: ip6tables
   register: ip6_legacy

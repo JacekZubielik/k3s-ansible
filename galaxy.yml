@@ -52,7 +52,7 @@ tags:
 dependencies:
   ansible.utils: '*'
   ansible.posix: '*'
-  community.general: '*'
+  # community.general: '*'
   kubernetes.core: '*'
 
 # The URL of the originating SCM repository

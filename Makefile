@@ -6,9 +6,14 @@ ifneq ($(DEBUG),y)
 .SILENT:
 endif
 
-.PHONY: deploy-all kubeconfig reboot shutdown help
+.PHONY: deploy-all deploy-requirements kubeconfig reboot shutdown help
 
 deploy-all:deploy kubeconfig help ## Deploy dev-k3s.cluster and copy kube-config
+
+.PHONY: deploy-requirements
+deploy-requirements: ## Deploy requirements.
+	echo "Deploy requirements ..."
+	ansible-galaxy install -r collections/requirements.yml
 
 .PHONY: deploy
 deploy: ## Deploy dev-k3s.cluster.

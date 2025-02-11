@@ -1,7 +1,6 @@
 ---
 - name: Set same timezone on every Server
-  community.general.timezone:
-    name: "{{ system_timezone }}"
+  ansible.builtin.command: timedatectl set-timezone "{{ system_timezone }}"
   when: (system_timezone is defined) and (system_timezone != "Your/Timezone")
 
 - name: Set SELinux to disabled state
@@ -41,7 +40,7 @@
   when: ansible_os_family == "RedHat"
 
 - name: Load br_netfilter
-  community.general.modprobe:
+  ansible.builtin.modprobe:
     name: br_netfilter
     state: present
   when: ansible_os_family == "RedHat"

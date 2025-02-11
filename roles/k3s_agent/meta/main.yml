@@ -17,18 +17,6 @@ argument_specs:
       k3s_token:
         description: Token used to communicate between masters
 
-      # proxy_env:
-      #   type: dict
-      #   description: Internet proxy configurations
-      #   default: ~
-      #   options:
-      #     HTTP_PROXY:
-      #       required: true
-      #     HTTPS_PROXY:
-      #       required: true
-      #     NO_PROXY:
-      #       required: true
-
       systemd_dir:
         description: Path to systemd services
         default: /etc/systemd/system

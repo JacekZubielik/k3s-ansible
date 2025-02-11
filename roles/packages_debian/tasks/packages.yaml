@@ -125,12 +125,8 @@
       ansible.builtin.debug:
         msg: "nfs-common service is {{ 'started' if nfs_service_status.status == 'started' else 'not started' }}"
 
-    # - name: "Debug iscsi_tcp module status"
-    #   ansible.builtin.debug:
-    #     msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
-
-    - name: "Load iscsi_tcp kernel module"
-      community.general.modprobe:
+    - name: "Load iscsi_tcp kernel module on each node"
+      ansible.builtin.modprobe:
         name: iscsi_tcp
         state: present
       loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
