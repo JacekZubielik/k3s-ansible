@@ -1,98 +1,88 @@
 ---
 - name: "Check if partition already exists"
-  community.general.parted:
-    device: /dev/vda
-    unit: GB
-  register: disk_info
+  ansible.builtin.command: parted /dev/vda print
+  register: debug_disk_info
+  changed_when: false
+
+- name: "Debug disk info"
+  ansible.builtin.debug:
+    var: debug_disk_info.stdout_lines
+
+- name: "Ensure disk has a partition table"
+  ansible.builtin.command: parted /dev/vda mklabel gpt
+  when: "'Partition Table' not in debug_disk_info.stdout or 'unknown' in debug_disk_info.stdout"
 
 - name: "Create single large partition filling the disk"
-  community.general.parted:
-    device: /dev/vda
-    number: 1
-    state: present
-    part_start: "0%"
-    part_end: "100%"
-    unit: GB
-  when: disk_info.partitions | map(attribute='num') | list | select('==', '1') | list | length == 0
+  ansible.builtin.command: >
+    parted /dev/vda -- mkpart primary 0% 100%
+  when: "'1' not in (debug_disk_info.stdout | regex_findall('^ 1'))"
+  ignore_errors: true  # To ensure the playbook doesn't fail if partition creation is not needed
 
-# - name: "Ensure if partition is mounted"
-#   ansible.posix.mount:
-#     src: "/dev/vda1"
-#     path: "/mnt/data"
-#     fstype: "ext4"
-#     state: "mounted"
-#   register: mount_check
-#   changed_when: false
-#   until: mount_check is succeeded
-#   ignore_errors: true
-
-- name: "Ensure filesystem is on new partition"
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      df -T | grep /dev/vda1 || true
-  register: filesystem
-  failed_when: false
-  # changed_when: false
+- name: "Skip partition creation if partition already exists"
+  ansible.builtin.debug:
+    msg: "Partition already exists, skipping partition creation."
+  when:
+    - "'1' in (debug_disk_info.stdout | regex_findall('^ 1'))"
 
 - name: "Ensure partition is unmounted"
-  ansible.posix.mount:
-    src: "/dev/vda1"
-    path: "/mnt/data"
-    fstype: "ext4"
-    state: unmounted
+  ansible.builtin.command: umount /mnt/data
   register: unmount_result
+  ignore_errors: true
+
+- name: "Check if filesystem already exists on the partition"
+  ansible.builtin.command: blkid -o value -s TYPE /dev/vda1
+  register: filesystem_check
+  ignore_errors: true
+  changed_when: false
 
 - name: "Create filesystem on new partition before installing Longhorn"
-  community.general.filesystem:
-    fstype: ext4
-    dev: /dev/vda1
-    opts: -L data
-    force: true
-    state: present
-  # when: filesystem.stdout | length == 0 or ('/dev/vda1' not in ansible_mounts|map(attribute='device')|list)
-  when: (filesystem.stdout | length == 0 or ('/dev/vda1' not in ansible_mounts | map(attribute='device') | list)) and (ansible_facts.filesystems['/dev/vda1'] is not defined)
+  ansible.builtin.command: mkfs.ext4 -L data /dev/vda1
+  when:
+    - filesystem_check.stdout != "ext4"
+    - (filesystem_check.rc == 0 or filesystem_check.rc == 2)
 
 - name: "Verify filesystem label"
-  ansible.builtin.command:
-    lsblk -o NAME,LABEL
+  ansible.builtin.command: lsblk -o NAME,LABEL
   register: result
   changed_when: false
 
 - name: "Add entry to '/etc/fstab' for LABEL=data"
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    line: 'LABEL=data /mnt/data ext4
-      noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min
-      0 2'
+    line: 'LABEL=data /mnt/data ext4 noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min 0 2'
     state: present
 
 - name: Check if fstab has changed
   ansible.builtin.stat:
     path: /etc/fstab
   register: fstab_stat
-  notify: Reload systemd
+  changed_when: true  # This task should report change if modified
 
 - name: "Reload systemd to apply fstab changes"
-  ansible.builtin.systemd:
-    daemon_reload: true
+  ansible.builtin.command: systemctl daemon-reload
   register: systemd_reload_result
   when: fstab_stat.changed
-  failed_when: systemd_reload_result is failed
+  failed_when: systemd_reload_result.rc != 0
 
 - name: "Ensure systemd reload was successful"
   ansible.builtin.fail:
-    msg: "Systemd daemon-reload failed with message: {{ systemd_reload_result.msg }}"
-  when: systemd_reload_result is failed
+    msg: "Systemd daemon-reload failed with message: {{ systemd_reload_result.stderr }}"
+  when: systemd_reload_result.rc != 0
 
 - name: "Ensure if partition is mounted"
-  ansible.posix.mount:
-    src: "/dev/vda1"
-    path: "/mnt/data"
-    fstype: "ext4"
-    state: "mounted"
+  ansible.builtin.command: mount /dev/vda1 /mnt/data
   register: mount_check
   changed_when: false
+  when: ansible_facts.mounts | selectattr('device', 'equalto', '/dev/vda1') | list | length == 0
+
+- name: "Ensure /mnt/data directory exists"
+  ansible.builtin.file:
+    path: /mnt/data
+    state: directory
+    mode: '0777'
+    owner: nobody
+    group: nogroup
+  when: not ansible_facts.mounts | selectattr('mount', 'equalto', '/mnt/data') | list
 
 - name: "Create directory /mnt/data"
   ansible.builtin.file:
@@ -105,11 +95,8 @@
 - name: Prepare data disks for storage before installing Longhorn
   block:
     - name: Ensure all filesystems in /etc/fstab are mounted
-      ansible.posix.mount:
-        path: /mnt/data
-        state: mounted
-      loop: "{{ ansible_mounts | map(attribute='mount') | list }}"
-      when: item not in ansible_mounts | map(attribute='mount') | list
+      ansible.builtin.command: mount -a
+      ignore_errors: true
 
   rescue:
     - name: "Handle failure"
