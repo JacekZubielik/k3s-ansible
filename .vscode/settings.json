@@ -1,3 +1,6 @@
 {
-  "ansible.python.interpreterPath": ".venv/bin/python"
+  "ansible.python.interpreterPath": ".venv/bin/python",
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/requirements.json": "file:///collections/requirements.yml"
+  }
 }

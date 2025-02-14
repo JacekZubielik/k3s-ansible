@@ -2,9 +2,11 @@
 collections:
 - name: ansible.utils
 - name: ansible.posix
+# - name: ansible.builtin
+- name: community.general
 - name: kubernetes.core
-- name: https://github.com/JacekZubielik/k3s-ansible.git
-  type: git
-  version: main
-# - name: gluster.gluster
-#   version: 1.0.2
+# - name: https://github.com/JacekZubielik/k3s-ansible.git
+#   type: git
+  # version: main
+- name: gluster.gluster
+  version: 1.0.2

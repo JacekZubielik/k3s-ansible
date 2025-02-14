@@ -3,38 +3,43 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-      - id: requirements-txt-fixer
-      - id: sort-simple-yaml
-      - id: detect-private-key
+      - id: check-added-large-files
       - id: check-merge-conflict
+      - id: detect-private-key
       - id: end-of-file-fixer
       - id: mixed-line-ending
+      - id: requirements-txt-fixer
+      - id: sort-simple-yaml
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
 
-  # - repo: https://github.com/commitizen-tools/commitizen
-  #   rev: v1.17.0
-  #   hooks:
-  #     - id: commitizen
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.2.1
+    hooks:
+      - id: commitizen
 
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.35.1
     hooks:
       - id: yamllint
         args: [-c=.yamllint]
+
   - repo: https://github.com/ansible-community/ansible-lint.git
-    rev: v24.12.2
+    rev: v25.1.2
     hooks:
       - id: ansible-lint
+
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
+
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.5
     hooks:
       - id: remove-crlf
       - id: remove-tabs
+
   - repo: https://github.com/sirosen/texthooks
     rev: 0.6.8
     hooks:

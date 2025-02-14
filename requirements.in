@@ -1,7 +1,7 @@
-ansible-core>=2.16.2
+ansible-core>=2.18.1
 jmespath>=1.0.1
 jsonpatch>=1.33
-kubernetes>=29.0.0
+kubernetes==32.0.0
 netaddr>=0.10.1
 pre-commit-hooks>=4.5.0
 pre-commit>=3.6.0

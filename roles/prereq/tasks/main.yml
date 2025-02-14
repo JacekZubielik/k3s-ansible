@@ -40,7 +40,7 @@
   when: ansible_os_family == "RedHat"
 
 - name: Load br_netfilter
-  ansible.builtin.modprobe:
+  community.general.modprobe:
     name: br_netfilter
     state: present
   when: ansible_os_family == "RedHat"
