@@ -3,6 +3,11 @@ kubeconfig
 **-off
 sample
 cache
-collections
 usr
 k3s-ansible
+/.venv
+/.ansible
+collections/ansible_collections
+node_modules
+package-lock.json
+package.json
