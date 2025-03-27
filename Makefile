@@ -6,9 +6,9 @@ ifneq ($(DEBUG),y)
 .SILENT:
 endif
 
-.PHONY: deploy-all deploy-requirements kubeconfig reboot shutdown help
+.PHONY: all deploy-requirements kubeconfig reboot shutdown help
 
-deploy-all:deploy kubeconfig help ## Deploy dev-k3s.cluster and copy kube-config
+all:deploy kubeconfig help ## Deploy dev-k3s.cluster and copy kube-config
 
 .PHONY: deploy-requirements
 deploy-requirements: ## Deploy requirements.
