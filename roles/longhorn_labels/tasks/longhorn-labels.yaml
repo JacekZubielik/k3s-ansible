@@ -10,18 +10,18 @@
       changed_when: "'already has' not in label_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
-    - name: "Apply annotation default-node-tags=fast,storage on storage nodes"
+    - name: "Apply annotation default-node-tags=storage on storage nodes"
       ansible.builtin.command:
         kubectl annotate nodes {{ hostvars[item].node_name }}
-        node.longhorn.io/default-node-tags='["fast","storage"]' --overwrite
+        node.longhorn.io/default-node-tags='["fast","slow"]' --overwrite
       register: annotation_check
       changed_when: "'already has' not in annotation_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
 
-    - name: "Apply annotation config-node-tags=fast,storage on storage nodes"
+    - name: "Apply annotation config-node-tags=fast,slow on storage nodes"
       ansible.builtin.command:
         kubectl annotate nodes {{ hostvars[item].node_name }}
-        node.longhorn.io/config-node-tags='["fast","storage"]' --overwrite
+        node.longhorn.io/config-node-tags='["fast","slow"]' --overwrite
       register: label_check
       changed_when: "'already has' not in label_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
@@ -36,9 +36,14 @@
 
     - name: "Apply annotation default-disks-config for data and database on storage nodes"
       ansible.builtin.command:
-        kubectl annotate nodes {{ hostvars[item].node_name }}
-        node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data",
-        "allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]' --overwrite
+        # kubectl annotate nodes {{ hostvars[item].node_name }}
+        # node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data",
+        # "allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]' --overwrite
+        cmd: >
+          kubectl annotate nodes {{ hostvars[item].node_name }}
+          node.longhorn.io/default-disks-config='[{"name":"fast","path":"/mnt/fast","allowScheduling":true,
+          "storageReserved":4294967296,"tags":["fast"]},{"name":"slow","path":"/mnt/slow","allowScheduling":true,
+          "storageReserved":4294967296,"tags":["slow"]}]' --overwrite
       register: annotation_check
       changed_when: "'already has' not in annotation_check.stdout"
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
@@ -72,7 +77,7 @@
   block:
     - name: "Download the preconfig script"
       ansible.builtin.get_url:
-        url: "https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/scripts/environment_check.sh"
+        url: "https://raw.githubusercontent.com/longhorn/longhorn/v1.8.1/scripts/environment_check.sh"
         dest: "/tmp/environment_check.sh"
         mode: '0755'
       register: script_download

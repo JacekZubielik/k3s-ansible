@@ -1,84 +1,138 @@
 ---
-- name: "Ensure /mnt/data directory exists"
+- name: "Create directory /mnt/fast"
   ansible.builtin.file:
-    path: /mnt/data
-    state: directory
-    mode: '0777'
-    owner: nobody
-    group: nogroup
-  when: not ansible_facts.mounts | selectattr('mount', 'equalto', '/mnt/data') | list
-
-- name: "Create directory /mnt/data"
-  ansible.builtin.file:
-    path: /mnt/data
+    path: /mnt/fast
     state: directory
     mode: '0777'
     owner: nobody
     group: nogroup
 
-- name: "Check if partition already exists"
+- name: "Ensure /mnt/fast directory exists"
+  ansible.builtin.file:
+    path: /mnt/fast
+    state: directory
+    mode: '0777'
+    owner: nobody
+    group: nogroup
+  when: not ansible_facts.mounts | selectattr('mount', 'equalto', '/mnt/fast') | list
+
+- name: "Create directory /mnt/slow"
+  ansible.builtin.file:
+    path: /mnt/slow
+    state: directory
+    mode: '0777'
+    owner: nobody
+    group: nogroup
+
+- name: "Ensure /mnt/slow directory exists"
+  ansible.builtin.file:
+    path: /mnt/slow
+    state: directory
+    mode: '0777'
+    owner: nobody
+    group: nogroup
+  when: not ansible_facts.mounts | selectattr('mount', 'equalto', '/mnt/slow') | list
+
+- name: "Check if partition already exists for fast disk"
   ansible.builtin.command: parted /dev/vda print
-  register: debug_disk_info
+  register: debug_disk_info_fast
   changed_when: false
 
-- name: "Debug disk info"
-  ansible.builtin.debug:
-    var: debug_disk_info.stdout_lines
-
-- name: "Ensure disk has a partition table"
+- name: "Ensure disk has a partition table for fast disk"
   ansible.builtin.command: parted /dev/vda mklabel gpt
-  when: "'Partition Table' not in debug_disk_info.stdout or 'unknown' in debug_disk_info.stdout"
+  when: "'Partition Table' not in debug_disk_info_fast.stdout or 'unknown' in debug_disk_info_fast.stdout"
 
-- name: "Create single large partition filling the disk"
+- name: "Check if partition already exists for slow disk"
+  ansible.builtin.command: parted /dev/vdb print
+  register: debug_disk_info_slow
+  changed_when: false
+
+- name: "Ensure disk has a partition table for slow disk"
+  ansible.builtin.command: parted /dev/vdb mklabel gpt
+  when: "'Partition Table' not in debug_disk_info_slow.stdout or 'unknown' in debug_disk_info_slow.stdout"
+
+- name: "Create single large partition filling the disk for fast disk"
   ansible.builtin.command: >
     parted /dev/vda -- mkpart primary 0% 100%
-  when: "'1' not in (debug_disk_info.stdout | regex_findall('^ 1'))"
-  ignore_errors: true  # To ensure the playbook doesn't fail if partition creation is not needed
+  when: "'1' not in (debug_disk_info_fast.stdout | regex_findall('^ 1'))"
+  ignore_errors: true
 
-- name: "Skip partition creation if partition already exists"
+- name: "Skip partition creation if partition already exists for fast disk"
   ansible.builtin.debug:
-    msg: "Partition already exists, skipping partition creation."
-  when:
-    - "'1' in (debug_disk_info.stdout | regex_findall('^ 1'))"
+    msg: "Partition already exists on /dev/vda, skipping partition creation."
+  when: "'1' in (debug_disk_info_fast.stdout | regex_findall('^ 1'))"
 
-- name: "Ensure partition is unmounted"
-  ansible.builtin.command: umount /mnt/data
-  register: unmount_result
+- name: "Create single large partition filling the disk for slow disk"
+  ansible.builtin.command: >
+    parted /dev/vdb -- mkpart primary 0% 100%
+  when: "'1' not in (debug_disk_info_slow.stdout | regex_findall('^ 1'))"
   ignore_errors: true
 
-- name: "Check if filesystem already exists on the partition"
+- name: "Skip partition creation if partition already exists for slow disk"
+  ansible.builtin.debug:
+    msg: "Partition already exists on /dev/vdb, skipping partition creation."
+  when: "'1' in (debug_disk_info_slow.stdout | regex_findall('^ 1'))"
+
+############
+
+# - name: "Ensure partition is unmounted"
+#   ansible.builtin.command: umount /mnt/data
+#   register: unmount_result
+#   ignore_errors: true
+
+##########
+
+- name: "Check if filesystem already exists on the partition for fast disk"
   ansible.builtin.command: blkid -o value -s TYPE /dev/vda1
-  register: filesystem_check
+  register: filesystem_check_fast
   ignore_errors: true
   changed_when: false
 
-- name: "Create filesystem on new partition before installing Longhorn"
-  ansible.builtin.command: mkfs.ext4 -L data /dev/vda1
-  when:
-    - filesystem_check.stdout != "ext4"
-    - (filesystem_check.rc == 0 or filesystem_check.rc == 2)
+- name: "Create filesystem on new partition for fast disk"
+  ansible.builtin.command: mkfs.ext4 -L fast /dev/vda1
+  when: filesystem_check_fast.stdout != "ext4"
 
-- name: "Verify filesystem label"
-  ansible.builtin.command: lsblk -o NAME,LABEL
-  register: result
+- name: "Check if filesystem already exists on the partition for slow disk"
+  ansible.builtin.command: blkid -o value -s TYPE /dev/vdb1
+  register: filesystem_check_slow
+  ignore_errors: true
   changed_when: false
 
-- name: "Add entry to '/etc/fstab' for LABEL=data"
+- name: "Create filesystem on new partition for slow disk"
+  ansible.builtin.command: mkfs.ext4 -L slow /dev/vdb1
+  when: filesystem_check_slow.stdout != "ext4"
+
+###########
+
+# - name: "Verify filesystem label"
+#   ansible.builtin.command: lsblk -o NAME,LABEL
+#   register: result
+#   changed_when: false
+
+###########
+
+- name: "Add entry to '/etc/fstab' for LABEL=fast"
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    line: 'LABEL=data /mnt/data ext4 noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min 0 2'
+    line: 'LABEL=fast /mnt/fast ext4 noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min 0 2'
     state: present
 
-- name: Check if fstab has changed
-  ansible.builtin.stat:
+- name: "Add entry to '/etc/fstab' for LABEL=slow"
+  ansible.builtin.lineinfile:
     path: /etc/fstab
-  register: fstab_stat
-  changed_when: true  # This task should report change if modified
+    line: 'LABEL=slow /mnt/slow ext4 noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min 0 2'
+    state: present
+
+# - name: Check if fstab has changed
+#   ansible.builtin.stat:
+#     path: /etc/fstab
+#   register: fstab_stat
+#   changed_when: true  # This task should report change if modified
 
 - name: "Reload systemd to apply fstab changes"
   ansible.builtin.command: systemctl daemon-reload
   register: systemd_reload_result
-  when: fstab_stat.changed
+  # when: fstab_stat.changed
   failed_when: systemd_reload_result.rc != 0
 
 - name: "Ensure systemd reload was successful"
@@ -86,11 +140,27 @@
     msg: "Systemd daemon-reload failed with message: {{ systemd_reload_result.stderr }}"
   when: systemd_reload_result.rc != 0
 
-- name: "Ensure if partition is mounted"
-  ansible.builtin.command: mount /dev/vda1 /mnt/data
-  register: mount_check
-  changed_when: false
-  when: ansible_facts.mounts | selectattr('device', 'equalto', '/dev/vda1') | list | length == 0
+# - name: "Ensure fast partition is mounted"
+#   ansible.builtin.command: mount /dev/vda1 /mnt/fast
+#   when: ansible_facts.mounts | selectattr('device', 'equalto', '/dev/vda1') | list | length == 0
+
+# - name: "Ensure slow partition is mounted"
+#   ansible.builtin.command: mount /dev/vdb1 /mnt/slow
+#   when: ansible_facts.mounts | selectattr('device', 'equalto', '/dev/vdb1') | list | length == 0
+
+- name: "Ensure fast partition is mounted"
+  ansible.builtin.mount:
+    path: /mnt/fast
+    src: /dev/vda1
+    fstype: ext4
+    state: mounted
+
+- name: "Ensure slow partition is mounted"
+  ansible.builtin.mount:
+    path: /mnt/slow
+    src: /dev/vdb1
+    fstype: ext4
+    state: mounted
 
 # - name: "Ensure /mnt/data directory exists"
 #   ansible.builtin.file:
@@ -114,6 +184,10 @@
     - name: Ensure all filesystems in /etc/fstab are mounted
       ansible.builtin.command: mount -a
       ignore_errors: true
+
+    - name: "Refresh mount facts"
+      ansible.builtin.setup:
+        filter: ansible_mounts
 
   rescue:
     - name: "Handle failure"
