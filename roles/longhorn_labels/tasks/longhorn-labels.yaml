@@ -36,9 +36,6 @@
 
     - name: "Apply annotation default-disks-config for data and database on storage nodes"
       ansible.builtin.command:
-        # kubectl annotate nodes {{ hostvars[item].node_name }}
-        # node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data",
-        # "allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]' --overwrite
         cmd: >
           kubectl annotate nodes {{ hostvars[item].node_name }}
           node.longhorn.io/default-disks-config='[{"name":"fast","path":"/mnt/fast","allowScheduling":true,
@@ -82,31 +79,11 @@
         mode: '0755'
       register: script_download
 
-    # - name: "Run the preconfig script"
-    #   ansible.builtin.command:
-    #     cmd: |
-    #       "/tmp/environment_check.sh"
-    #   when: script_download.changed or not script_download.changed
-    #   register: script_check
-    #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
-
-    # - name: "Run the preconfig script"
-    #   ansible.builtin.command:
-    #     cmd: |
-    #       "/tmp/environment_check.sh"
-    #   register: script_check
-    #   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
-    #   loop_control:
-    #     loop_var: server
-
     - name: "Run the preconfig script"
       ansible.builtin.command:
         cmd: "/tmp/environment_check.sh"
       register: script_check
       loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
-      loop_control:
-        loop_var: server
-      changed_when: script_check.stdout | length > 0  # Example condition; adjust as needed
 
     - name: "Print script output"
       ansible.builtin.debug:
