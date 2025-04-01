@@ -10,14 +10,12 @@
 
 - name: Update and upgrade Debian packages
   hosts: k3s_cluster
-  environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: packages_debian
       become: true
 
 - name: Longhorn utils
   hosts: storage_servers
-  environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: longhorn_utils
       become: true
@@ -25,7 +23,6 @@
 - name: Prepare k3s nodes
   hosts: k3s_cluster
   gather_facts: true
-  environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: prereq
       become: true
@@ -36,28 +33,24 @@
 
 - name: Setup k3s servers
   hosts: master
-  environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: k3s_server
       become: true
 
 - name: Setup k3s agents
   hosts: node
-  environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: k3s_agent
       become: true
 
 - name: Configure k3s cluster
   hosts: master
-  environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: k3s_server_post
       become: true
 
 - name: Storing kubeconfig in the playbook directory
   hosts: master
-  environment: "{{ proxy_env | default({}) }}"
   tasks:
     - name: Copying kubeconfig from {{ hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname'] }}
       ansible.builtin.fetch:
@@ -68,7 +61,12 @@
 
 - name: Longhorn labels and annotations
   hosts: master
-  environment: "{{ proxy_env | default({}) }}"
   roles:
     - role: longhorn_labels
       become: true
+
+- name: Containerd utils
+  hosts: k3s_cluster
+  become: yes
+  roles:
+    - containerd
