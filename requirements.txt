@@ -1,7 +1,7 @@
 # requirements.txt
 
 ansible-compat==25.1.4
-ansible-core==2.18.3
+ansible-core==2.18.4
 attrs==25.3.0
 bracex==2.5.post1
 cachetools==5.5.2
@@ -38,7 +38,7 @@ pluggy==1.5.0
 pre_commit==4.2.0
 pre_commit_hooks==5.0.0
 pyasn1==0.6.1
-pyasn1_modules==0.4.1
+pyasn1_modules==0.4.2
 pycparser==2.22
 Pygments==2.19.1
 python-dateutil==2.9.0.post0
@@ -48,14 +48,14 @@ referencing==0.36.2
 requests==2.32.3
 requests-oauthlib==2.0.0
 resolvelib==1.1.0
-rich==13.9.4
-rpds-py==0.23.1
+rich==14.0.0
+rpds-py==0.24.0
 rsa==4.9
 ruamel.yaml==0.18.10
 ruamel.yaml.clib==0.2.12
 six==1.17.0
 subprocess-tee==0.4.2
 urllib3==2.3.0
-virtualenv==20.29.3
+virtualenv==20.30.0
 wcmatch==10.0
 websocket-client==1.8.0
