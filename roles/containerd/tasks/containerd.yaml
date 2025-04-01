@@ -1,0 +1,33 @@
+---
+- name: Create a directory for containerd configuration
+  file:
+    path: /var/lib/rancher/k3s/agent/etc/containerd
+    state: directory
+    mode: '0755'
+
+- name: Create certs.d directory for the registry
+  file:
+    path: /var/lib/rancher/k3s/agent/etc/containerd/certs.d/docker-hub-cache.containerd.svc:5000
+    state: directory
+    mode: '0755'
+
+- name: Decrypt and copy CA certificate to nodes
+  ansible.builtin.copy:
+    src: ca.crt.vault
+    dest: /var/lib/rancher/k3s/agent/etc/containerd/certs.d/docker-hub-cache.containerd.svc:5000/ca.crt
+    mode: '0644'
+    decrypt: yes
+  notify: restart k3s
+
+- name: Configure the mirror in config.toml
+  copy:
+    dest: /var/lib/rancher/k3s/agent/etc/containerd/config.toml
+    content: |
+      [plugins."io.containerd.grpc.v1.cri".registry]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+          [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+            endpoint = ["https://docker-hub-cache.containerd.svc:5000", "https://registry-1.docker.io"]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."docker-hub-cache.containerd.svc:5000".tls]
+          ca_file = "/var/lib/rancher/k3s/agent/etc/containerd/certs.d/docker-hub-cache.containerd.svc:5000/ca.crt"
+    mode: '0644'
+  notify: restart k3s

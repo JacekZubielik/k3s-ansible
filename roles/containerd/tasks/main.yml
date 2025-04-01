@@ -1,0 +1,3 @@
+---
+- name: Update containerd
+  ansible.builtin.include_tasks: containerd.yaml
