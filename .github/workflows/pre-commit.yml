@@ -16,5 +16,13 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
 
+    - name: Create vault password file
+      run: echo "${{ secrets.VAULT_PASSWORD }}" > /tmp/vault_pass
+      shell: bash
+      env:
+        VAULT_PASSWORD: ${{ secrets.VAULT_PASSWORD }}
+
     - name: Run pre-commit
       uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+      env:
+        ANSIBLE_VAULT_PASSWORD_FILE: /tmp/vault_pass
