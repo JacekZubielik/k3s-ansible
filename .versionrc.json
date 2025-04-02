@@ -1,5 +1,7 @@
 {
-    "types": [
+  "preset": "eslint",
+  "header": "# Change history\n\n",
+  "types": [
       { "type": "feat", "section": "Features" },
       { "type": "fix", "section": "Bug Fixes" },
       { "type": "perf", "section": "Performance Improvements" },
@@ -11,5 +13,9 @@
       { "type": "test", "section": "Tests", "hidden": true },
       { "type": "build", "section": "Build System", "hidden": true },
       { "type": "ci", "section": "Continuous Integration", "hidden": true }
-    ]
+  ],
+  "commitUrlFormat": "https://github.com/JacekZubielik/k3s-ansible/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/JacekZubielik/k3s-ansible/compare/{{previousTag}}...{{currentTag}}",
+  "issuePrefixes": ["#"],
+  "issueUrlFormat": "https://github.com/JacekZubielik/k3s-ansible/issues/{{id}}"
   }

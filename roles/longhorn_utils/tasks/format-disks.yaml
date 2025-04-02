@@ -73,15 +73,6 @@
     msg: "Partition already exists on /dev/vdb, skipping partition creation."
   when: "'1' in (debug_disk_info_slow.stdout | regex_findall('^ 1'))"
 
-############
-
-# - name: "Ensure partition is unmounted"
-#   ansible.builtin.command: umount /mnt/data
-#   register: unmount_result
-#   ignore_errors: true
-
-##########
-
 - name: "Check if filesystem already exists on the partition for fast disk"
   ansible.builtin.command: blkid -o value -s TYPE /dev/vda1
   register: filesystem_check_fast
@@ -102,15 +93,6 @@
   ansible.builtin.command: mkfs.ext4 -L slow /dev/vdb1
   when: filesystem_check_slow.stdout != "ext4"
 
-###########
-
-# - name: "Verify filesystem label"
-#   ansible.builtin.command: lsblk -o NAME,LABEL
-#   register: result
-#   changed_when: false
-
-###########
-
 - name: "Add entry to '/etc/fstab' for LABEL=fast"
   ansible.builtin.lineinfile:
     path: /etc/fstab
@@ -123,12 +105,6 @@
     line: 'LABEL=slow /mnt/slow ext4 noatime,x-systemd.automount,x-systemd.device-timeout=10,x-systemd.idle-timeout=1min 0 2'
     state: present
 
-# - name: Check if fstab has changed
-#   ansible.builtin.stat:
-#     path: /etc/fstab
-#   register: fstab_stat
-#   changed_when: true  # This task should report change if modified
-
 - name: "Reload systemd to apply fstab changes"
   ansible.builtin.command: systemctl daemon-reload
   register: systemd_reload_result
@@ -139,14 +115,6 @@
   ansible.builtin.fail:
     msg: "Systemd daemon-reload failed with message: {{ systemd_reload_result.stderr }}"
   when: systemd_reload_result.rc != 0
-
-# - name: "Ensure fast partition is mounted"
-#   ansible.builtin.command: mount /dev/vda1 /mnt/fast
-#   when: ansible_facts.mounts | selectattr('device', 'equalto', '/dev/vda1') | list | length == 0
-
-# - name: "Ensure slow partition is mounted"
-#   ansible.builtin.command: mount /dev/vdb1 /mnt/slow
-#   when: ansible_facts.mounts | selectattr('device', 'equalto', '/dev/vdb1') | list | length == 0
 
 - name: "Ensure fast partition is mounted"
   ansible.builtin.mount:
@@ -161,23 +129,6 @@
     src: /dev/vdb1
     fstype: ext4
     state: mounted
-
-# - name: "Ensure /mnt/data directory exists"
-#   ansible.builtin.file:
-#     path: /mnt/data
-#     state: directory
-#     mode: '0777'
-#     owner: nobody
-#     group: nogroup
-#   when: not ansible_facts.mounts | selectattr('mount', 'equalto', '/mnt/data') | list
-
-# - name: "Create directory /mnt/data"
-#   ansible.builtin.file:
-#     path: /mnt/data
-#     state: directory
-#     mode: '0777'
-#     owner: nobody
-#     group: nogroup
 
 - name: Prepare data disks for storage before installing Longhorn
   block:

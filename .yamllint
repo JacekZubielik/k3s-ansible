@@ -69,5 +69,5 @@ rules:
     forbid-explicit-octal: true
   trailing-spaces: enable
   truthy:
-    allowed-values: ["true", "false", "on"]
+    allowed-values: ["true", "false", "on", "yes"]
     level: warning

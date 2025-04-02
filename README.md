@@ -14,7 +14,7 @@ This release of the repository adds `Makefile` and new **Ansible** playbooks, wh
 
 ![](assets/images/k3s-ha-config.png)
 
-# Related repositories
+## Related repositories
 
 The project consists of multiple repositories, deployment is fully automated, the cluster can be redeployed in minutes as many times as required.
 
@@ -70,17 +70,17 @@ apiserver_endpoint: "192.168.40.200"
 
 Uncomment the appropriate entry to select the **CNI** for your deployment.
 
-```
+```bash
 # uncomment cilium_iface to use cilium cni instead of flannel or calico
 cilium_iface: "eth0"
 ```
 
-```
+```bash
 # interface which will be used for flannel
 # flannel_iface: eth0
 ```
 
-```
+```bash
 # uncomment calico_iface to use tigera operator/calico cni instead of flannel https://docs.tigera.io/calico/latest/about
 # calico_iface: eth0
 ```
@@ -98,19 +98,20 @@ callback_result_format = yaml
 callbacks_enabled = profile_tasks
 collections_path = ./collections:/usr/share/ansible/collections
 fact_caching = jsonfile
-fact_caching_connection = inventory/cache
+fact_caching_connection = ./inventory/cache
 fact_caching_timeout = 86400
 forks = 5
 gathering = smart
 hash_behaviour = merge
-inventory = inventory/hosts.ini
-local_tmp = $HOME/.ansible/tmp
+inventory = ./inventory/hosts.ini
+local_tmp = .ansible/tmp
 log_path = ./ansible.log
 pipelining = True
-remote_tmp = $HOME/.ansible/tmp
+remote_tmp = .ansible/tmp
 roles_path = ./roles:/usr/share/ansible/roles
 stdout_callback = yaml
 timeout = 60
+vault_password_file = ~/.vault/vault_passphrase.gpg
 
 [ssh_connection]
 ansible_ssh_private_key_file = ~/.ssh/id_rsa
@@ -132,7 +133,7 @@ This playbook automates the process of creating partitions, configuring the file
 
 ### Disable swap memory
 
-```
+```yaml
 - name: Disable swap memory
   include_tasks: disable_swap.yml
 ```
@@ -142,23 +143,43 @@ This playbook automates the process of creating partitions, configuring the file
 In this step, the parted module is used to create one large partition on the disk `/dev/vda`, which occupies all available space (from 0% to 100% of the disk).
 
 ```yaml
-- name: "Create single large partition filling the disk"
+- name: "Create single large partition filling the disk for fast disk"
   ansible.builtin.command: >
     parted /dev/vda -- mkpart primary 0% 100%
-  when: "'1' not in (debug_disk_info.stdout | regex_findall('^ 1'))"
+  when: "'1' not in (debug_disk_info_fast.stdout | regex_findall('^ 1'))"
+  ignore_errors: true
+
+- name: "Create single large partition filling the disk for slow disk"
+  ansible.builtin.command: >
+    parted /dev/vdb -- mkpart primary 0% 100%
+  when: "'1' not in (debug_disk_info_slow.stdout | regex_findall('^ 1'))"
   ignore_errors: true
 ```
 
 ### Creating a File System
 
-The aim of this task is to create an `ext4` file system on the device `/dev/vda1`, provided that certain conditions are met. This allows for the preparation of disk space for applications such as Longhorn, which require an appropriate file structure.
+The aim of this task is to create an `ext4` file system on the device `/dev/vda1` and `/dev/vdb1`, provided that certain conditions are met. This allows for the preparation of disk space for applications such as Longhorn, which require an appropriate file structure.
 
 ```yaml
-- name: "Create filesystem on new partition before installing Longhorn"
-  ansible.builtin.command: mkfs.ext4 -L data /dev/vda1
-  when:
-    - filesystem_check.stdout != "ext4"
-    - (filesystem_check.rc == 0 or filesystem_check.rc == 2)
+- name: "Check if filesystem already exists on the partition for fast disk"
+  ansible.builtin.command: blkid -o value -s TYPE /dev/vda1
+  register: filesystem_check_fast
+  ignore_errors: true
+  changed_when: false
+
+- name: "Create filesystem on new partition for fast disk"
+  ansible.builtin.command: mkfs.ext4 -L fast /dev/vda1
+  when: filesystem_check_fast.stdout != "ext4"
+
+- name: "Check if filesystem already exists on the partition for slow disk"
+  ansible.builtin.command: blkid -o value -s TYPE /dev/vdb1
+  register: filesystem_check_slow
+  ignore_errors: true
+  changed_when: false
+
+- name: "Create filesystem on new partition for slow disk"
+  ansible.builtin.command: mkfs.ext4 -L slow /dev/vdb1
+  when: filesystem_check_slow.stdout != "ext4"
 ```
 
 The results of the command are displayed using the `debug` module, which allows you to see if the label has been correctly assigned.
@@ -195,17 +216,43 @@ ok: [dev-k3s-node-2.homelab.lan] =>
   - └─vda1  data
 ```
 
-### Creating a Mount Point Directory
+## Creating a Mount Point Directory
 This step creates the directory `/mnt/data`, which will be used as a mount point for the new file system.
 
 ```yaml
-- name: "Create directory /mnt/data"
+- name: "Create directory /mnt/fast"
   ansible.builtin.file:
-    path: /mnt/data
+    path: /mnt/fast
     state: directory
     mode: '0777'
     owner: nobody
     group: nogroup
+
+- name: "Ensure /mnt/fast directory exists"
+  ansible.builtin.file:
+    path: /mnt/fast
+    state: directory
+    mode: '0777'
+    owner: nobody
+    group: nogroup
+  when: not ansible_facts.mounts | selectattr('mount', 'equalto', '/mnt/fast') | list
+
+- name: "Create directory /mnt/slow"
+  ansible.builtin.file:
+    path: /mnt/slow
+    state: directory
+    mode: '0777'
+    owner: nobody
+    group: nogroup
+
+- name: "Ensure /mnt/slow directory exists"
+  ansible.builtin.file:
+    path: /mnt/slow
+    state: directory
+    mode: '0777'
+    owner: nobody
+    group: nogroup
+  when: not ansible_facts.mounts | selectattr('mount', 'equalto', '/mnt/slow') | list
 ```
 
 ## Role of `longhorn_labels`
@@ -255,12 +302,15 @@ This task sets the `default disk` configuration for **Longhorn**, defining param
 ```yaml
 - name: "Apply annotation default-disks-config for data and database on storage nodes"
   ansible.builtin.command:
-    kubectl annotate nodes {{ hostvars[item].node_name }}
-    node.longhorn.io/default-disks-config='[{"name":"data","path":"/mnt/data",
-    "allowScheduling":true,"storageReserved":4294967296,"tags":["data","fast"]}]' --overwrite
+    cmd: >
+      kubectl annotate nodes {{ hostvars[item].node_name }}
+      node.longhorn.io/default-disks-config='[{"name":"fast","path":"/mnt/fast","allowScheduling":true,
+      "storageReserved":4294967296,"tags":["fast"]},{"name":"slow","path":"/mnt/slow","allowScheduling":true,
+      "storageReserved":4294967296,"tags":["slow"]}]' --overwrite
   register: annotation_check
   changed_when: "'already has' not in annotation_check.stdout"
   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
+
 ```
 
 The task removes the default flag `local-path`.
@@ -282,21 +332,17 @@ This script checks the environment for compliance with Longhorn requirements.
 ```yaml
 - name: "Download the preconfig script"
   ansible.builtin.get_url:
-    url: "https://raw.githubusercontent.com/longhorn/longhorn/v1.7.2/scripts/environment_check.sh"
+    url: "https://raw.githubusercontent.com/longhorn/longhorn/v1.8.1/scripts/environment_check.sh"
     dest: "/tmp/environment_check.sh"
     mode: '0755'
   register: script_download
-```
 
-```yaml
 - name: "Run the preconfig script"
   ansible.builtin.command:
     cmd: "/tmp/environment_check.sh"
   register: script_check
   loop: "{{ hostvars[inventory_hostname]['groups']['storage_servers'] }}"
-  loop_control:
-    loop_var: server
-  changed_when: script_check.stdout | length > 0
+
 ```
 
 This task displays the results of a check script.
@@ -322,7 +368,46 @@ This task labels all nodes as worker nodes.
   loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
 ```
 
-# Usage
+## Create a directory for containerd configuration
+
+The Ansible role plays a crucial role in managing the configuration of a containerd-based environment within a K3s cluster. Its primary purpose is to set up the necessary directories and configuration files on the cluster nodes, enabling secure and efficient use of a local Docker Hub registry mirror. The first task creates a directory for containerd configuration with appropriate permissions, laying the groundwork for subsequent steps. Next, a subdirectory is established for registry-specific certificates, ensuring a secure storage location for authentication data. The third task decrypts and copies a CA certificate to the nodes using Ansible Vault, safeguarding sensitive information and triggering a K3s restart notification if needed. Finally, the role configures the config.toml file, defining the Docker Hub mirror with a local endpoint and linking it to the CA certificate's location, which optimizes container image retrieval and enhances system reliability.
+
+```yaml
+- name: Create a directory for containerd configuration
+  file:
+    path: /var/lib/rancher/k3s/agent/etc/containerd
+    state: directory
+    mode: '0755'
+
+- name: Create certs.d directory for the registry
+  file:
+    path: /var/lib/rancher/k3s/agent/etc/containerd/certs.d/docker-hub-cache.containerd.svc:5000
+    state: directory
+    mode: '0755'
+
+- name: Decrypt and copy CA certificate to nodes
+  ansible.builtin.copy:
+    src: ca.crt.vault
+    dest: /var/lib/rancher/k3s/agent/etc/containerd/certs.d/docker-hub-cache.containerd.svc:5000/ca.crt
+    mode: '0644'
+    decrypt: yes
+  notify: restart k3s
+
+- name: Configure the mirror in config.toml
+  copy:
+    dest: /var/lib/rancher/k3s/agent/etc/containerd/config.toml
+    content: |
+      [plugins."io.containerd.grpc.v1.cri".registry]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+          [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+            endpoint = ["https://docker-hub-cache.containerd.svc:5000", "https://registry-1.docker.io"]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."docker-hub-cache.containerd.svc:5000".tls]
+          ca_file = "/var/lib/rancher/k3s/agent/etc/containerd/certs.d/docker-hub-cache.containerd.svc:5000/ca.crt"
+    mode: '0644'
+  notify: restart k3s
+```
+
+## Usage
 
 Start provisioning the cluster using the following command:
 
