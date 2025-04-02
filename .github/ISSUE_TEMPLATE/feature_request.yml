@@ -16,7 +16,7 @@ body:
       description: Give a clear and concise description of what the problem is.
       placeholder: "ex. I'm always frustrated when [...]"
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: prop-solution
@@ -24,7 +24,7 @@ body:
       label: Describe the solution you'd like.
       description: A clear and concise description of what you want to happen.
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: alternatives
@@ -32,7 +32,7 @@ body:
       label: Describe alternatives you've considered.
       description: A clear and concise description of any alternative solutions or features you've considered. If nothing, please enter `NONE`
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: additional-ctxt
