@@ -1,0 +1,19 @@
+---
+name: Generate changelog
+on:
+  release:
+    types: [created, edited]
+jobs:
+  generate-changelog:
+    runs-on: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        fetch-depth: 0
+    - uses: BobAnkh/auto-generate-changelog@b8e208489ce4f71adc3b6467020dd276f1445e8a # v1.2.5
+      with:
+        REPO_NAME: 'JacekZubielik/k3s-ansible'
+        ACCESS_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        PATH: 'CHANGELOG.md'
+        COMMIT_MESSAGE: 'docs(CHANGELOG): update release notes'
+        TYPE: 'feat:Feature,fix:Bug Fixes,docs:Documentation,refactor:Refactor,perf:Performance Improvements'

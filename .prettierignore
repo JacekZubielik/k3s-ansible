@@ -1,0 +1,8 @@
+**/.git
+**/.vscode
+**/.archive
+**/*.sops.*
+**/*.sec.*
+**/decrypted-secrets/secret*.y*ml
+**/temp-off/*.*
+*.sops.*

@@ -26,13 +26,9 @@ jobs:
     needs: [size]
 
   sync:
-    uses: ./.github/workflows/sync-labels.yml
+    uses: ./.github/workflows/label-sync.yml
     needs: [labeler]
 
-  lint:
-    uses: ./.github/workflows/linter.yml
+  pre-commit:
+    uses: ./.github/workflows/pre-commit.yml
     needs: [sync]
-
-  superlint:
-    uses: ./.github/workflows/superlinter.yml
-    needs: [lint]
