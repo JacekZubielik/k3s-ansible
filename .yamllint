@@ -1,26 +1,26 @@
 ---
 extends: default
 
+yaml-files:
+  - '*.yaml'
+  - '*.yml'
+  - '.yamllint'
+
 ignore: |
-  archive/
-  charts/
-  docs/
+  .ansible/
   .private/
+  .venv/
   .vscode/
-  **/*.sec.*
-  **/*.sops.*
-  **/*.enc.*
-  **/*secret*.*
-  secret*.y*ml
-  galaxy.yml
-  collections/
+  *.enc.*
+  *.sec.*
+  *.sops.*
+  *secret*.*
+  **secret*.y*ml
+  *sops*.yaml
 
 rules:
-  comments:
-    min-spaces-from-content: 1
-    require-starting-space: true
-  comments-indentation: false
   braces:
+    min-spaces-inside: 0
     max-spaces-inside: 1
   brackets:
     min-spaces-inside: 0
@@ -35,7 +35,13 @@ rules:
     max-spaces-before: 0
     min-spaces-after: 1
     max-spaces-after: 1
+  comments:
+    min-spaces-from-content: 1
+    require-starting-space: true
+  comments-indentation: disable
   document-end: disable
+    # level: warning
+    # present: true
   document-start:
     level: warning
     present: true
@@ -48,12 +54,12 @@ rules:
     level: warning
     max-spaces-after: 1
   indentation:
-    spaces: consistent
-    indent-sequences: whatever # - list indentation will handle both indentation and without
+    spaces: 2 # consistent
+    indent-sequences: whatever
     check-multi-line-strings: false
   key-duplicates: enable
   line-length: # disable
-    max: 220
+    max: 1000
     level: warning
   new-line-at-end-of-file: enable
   new-lines:
@@ -63,5 +69,5 @@ rules:
     forbid-explicit-octal: true
   trailing-spaces: enable
   truthy:
-    allowed-values: ["true", "false", "yes", "no"]
+    allowed-values: ["true", "false", "on"]
     level: warning
