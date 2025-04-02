@@ -3,26 +3,22 @@ name: Label Size
 on:
   workflow_call:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - master
 
 jobs:
   label-size:
     name: Label Size
     runs-on: [ubuntu-latest]
     steps:
-      - name: Set up
-        uses: pascalgn/size-label-action@be08a2d5f857dc99c5b9426cdb5a8ea1aa7f0399 # v0.5.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          sizes: >
-            {
-              "0": "XS",
-              "20": "S",
-              "50": "M",
-              "200": "L",
-              "800": "XL",
-              "2000": "XXL"
-            }
+    - name: Set up
+      uses: pascalgn/size-label-action@f8edde36b3be04b4f65dcfead05dc8691b374348 # v0.5.5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        sizes: >
+          {
+          "0": "S",
+          "50": "M",
+          "200": "L",
+          "800": "XL",
+          "2000": "XXL"
+          }
