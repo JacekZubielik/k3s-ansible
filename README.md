@@ -411,12 +411,12 @@ The Ansible role plays a crucial role in managing the configuration of a contain
 
 Start provisioning the cluster using the following command:
 
-`make deploy-all`
+`make all`
 
 ```shell
 Usage:
   make <target>
-  deploy-all       Deploy dev-k3s.cluster and copy kube-config
+  all       Deploy dev-k3s.cluster and copy kube-config
   deploy           Deploy dev-k3s.cluster.
   kubeconfig       Copy 'kubeconfig'.
   reboot           Reboot dev-k3s.cluster.
