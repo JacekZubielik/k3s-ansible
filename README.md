@@ -126,7 +126,6 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=30m -o Compression=yes -o Ser
 
 The role of `packages_debian` is to update and modernize the Debian system by installing packages, configuring files, and managing services.
 
-
 ## The Role of `longhorn_util`
 
 This playbook automates the process of creating partitions, configuring the file system, and mounting it in Linux, which is crucial for preparing the environment for Longhorn installation. As a result, the entire process is repeatable and easy to manage.
