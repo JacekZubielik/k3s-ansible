@@ -47,7 +47,6 @@ PyYAML==6.0.2
 referencing==0.36.2
 requests==2.32.3
 requests-oauthlib==2.0.0
-resolvelib==1.1.0
 rich==14.0.0
 rpds-py==0.24.0
 rsa==4.9
