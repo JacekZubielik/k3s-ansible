@@ -38,23 +38,23 @@ In the case of **bare metal**, you need to provide a physical data medium for ea
 
 ```ini
 [master]
-dev-k3s-master-0.homelab.lan node_name=dev-k3s-master-0
-dev-k3s-master-1.homelab.lan node_name=dev-k3s-master-1
-dev-k3s-master-2.homelab.lan node_name=dev-k3s-master-2
+dev-master-0.lab.hq.e-liberty.org node_name=dev-master-0
+dev-master-1.lab.hq.e-liberty.org node_name=dev-master-1
+dev-master-2.lab.hq.e-liberty.org node_name=dev-master-2
 
 [node]
-dev-k3s-node-0.homelab.lan node_name=dev-k3s-node-0
-dev-k3s-node-1.homelab.lan node_name=dev-k3s-node-1
-dev-k3s-node-2.homelab.lan node_name=dev-k3s-node-2
+dev-node-0.lab.hq.e-liberty.org node_name=dev-node-0
+dev-node-1.lab.hq.e-liberty.org node_name=dev-node-1
+dev-node-2.lab.hq.e-liberty.org node_name=dev-node-2
 
 [k3s_cluster:children]
 master
 node
 
 [storage_servers]
-dev-k3s-node-0.homelab.lan
-dev-k3s-node-1.homelab.lan
-dev-k3s-node-2.homelab.lan
+dev-node-0.lab.hq.e-liberty.org
+dev-node-1.lab.hq.e-liberty.org
+dev-node-2.lab.hq.e-liberty.org
 ```
 
 ## **File Editing**: `all.yml`
@@ -186,7 +186,7 @@ The results of the command are displayed using the `debug` module, which allows 
 ```log
 TASK [longhorn_util : debug] ************************************************************************************************************************************************************************************
 Sunday 01 December 2024  00:03:06 +0100 (0:00:00.170)       0:00:20.568 *******
-ok: [dev-k3s-node-0.homelab.lan] =>
+ok: [dev-node-0.lab.hq.e-liberty.org] =>
   result.stdout_lines:
   - NAME    LABEL
   - 'sda     '
@@ -195,7 +195,7 @@ ok: [dev-k3s-node-0.homelab.lan] =>
   - '└─sda15 '
   - 'vda     '
   - └─vda1  data
-ok: [dev-k3s-node-1.homelab.lan] =>
+ok: [dev-node-1.lab.hq.e-liberty.org] =>
   result.stdout_lines:
   - NAME    LABEL
   - 'sda     '
@@ -204,7 +204,7 @@ ok: [dev-k3s-node-1.homelab.lan] =>
   - '└─sda15 '
   - 'vda     '
   - └─vda1  data
-ok: [dev-k3s-node-2.homelab.lan] =>
+ok: [dev-node-2.lab.hq.e-liberty.org] =>
   result.stdout_lines:
   - NAME    LABEL
   - 'sda     '

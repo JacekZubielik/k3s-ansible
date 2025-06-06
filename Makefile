@@ -8,7 +8,7 @@ endif
 
 .PHONY: all deploy-requirements kubeconfig reboot shutdown help
 
-all:deploy kubeconfig help ## Deploy dev-k3s.cluster and copy kube-config
+all:deploy kubeconfig help ## Deploy dev.cluster and copy kube-config
 
 .PHONY: deploy-requirements
 deploy-requirements: ## Deploy requirements.
@@ -16,8 +16,8 @@ deploy-requirements: ## Deploy requirements.
 	ansible-galaxy install -r collections/requirements.yml
 
 .PHONY: deploy
-deploy: ## Deploy dev-k3s.cluster.
-	echo "Deploy dev-k3s.cluster ..."
+deploy: ## Deploy dev.cluster.
+	echo "Deploy dev.cluster ..."
 	ansible-playbook site.yml
 
 .PHONY: kubeconfig
@@ -27,13 +27,13 @@ kubeconfig: ## Copy 'kubeconfig'.
 	kubectl get nodes --show-kind
 
 .PHONY: reboot
-reboot: ## Reboot dev-k3s.cluster.
-	echo "Reboot dev-k3s.cluster ..."
+reboot: ## Reboot dev.cluster.
+	echo "Reboot dev.cluster ..."
 	ansible-playbook reboot.yml
 
 .PHONY: shutdown
-shutdown: ## Shutdown dev-k3s.cluster.
-	echo "Shutdown dev-k3s.cluster ..."
+shutdown: ## Shutdown dev.cluster.
+	echo "Shutdown dev.cluster ..."
 	ansible-playbook reset.yml
 
 .PHONY: help
