@@ -16,12 +16,6 @@ Closes #[issue number]
 ## Checklist
 
 - [ ] Tested locally
-- [ ] Ran `site.yml` playbook
-- [ ] Ran `reset.yml` playbook
-- [ ] Did not add any unnecessary changes
-- [ ] Ran pre-commit install at least once before committing
-- [ ] I have performed a self-review of my code.
-- [ ] I have commented my code where necessary.
 
 ## Type of Change
 
@@ -29,6 +23,7 @@ Closes #[issue number]
 - [ ] New Feature
 - [ ] Documentation Update
 - [ ] Other (please specify)
+
 <!--- Provide a general summary of your changes -->
 
 -
