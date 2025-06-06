@@ -1,5 +1,5 @@
 ---
-k3s_version: v1.32.3+k3s1
+k3s_version: v1.33.0+k3s1
 # this is the user that has ssh access to these machines
 ansible_user: ansible
 systemd_dir: /etc/systemd/system
@@ -16,7 +16,7 @@ system_timezone: CET
 # uncomment cilium_iface to use cilium cni instead of flannel or calico
 cilium_iface: "eth0"
 cilium_mode: native # native when nodes on same subnet or using bgp, else set routed
-cilium_tag: v1.17.2 # v1.16.0 # cilium version tag
+cilium_tag: v1.17.3 # cilium version tag
 cilium_hubble: true # enable hubble observability relay and ui
 
 # if using calico or cilium, you may specify the cluster pod cidr pool
