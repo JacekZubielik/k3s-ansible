@@ -7,7 +7,9 @@ usr
 k3s-ansible
 /.venv
 /.ansible
-collections/ansible_collections
+/ansible/collections/ansible_collections
 node_modules
 package-lock.json
 package.json
+/target/dev/.kube/config
+/target/prod/.kube/config

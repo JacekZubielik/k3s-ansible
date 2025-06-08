@@ -1,5 +1,5 @@
 {
-  "ansible.python.interpreterPath": ".venv/bin/python",
+  "ansible.python.interpreterPath": "/home/jacek/works/homelab/k3s-playbook/k3s-ansible/venv/bin/python",
   "yaml.schemas": {
     "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/requirements.json": "file:///collections/requirements.yml"
   }

@@ -1,0 +1,14 @@
+---
+use_default_rules: true
+
+enable_list:
+  - no-log-password
+  - no-same-owner
+  - yaml
+
+warn_list:
+  - skip_this_tag
+  - git-latest
+  - experimental
+
+offline: false
