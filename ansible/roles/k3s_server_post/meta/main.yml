@@ -76,7 +76,7 @@ argument_specs:
 
       cilium_bgp_lb_cidr:
         description: BGP load balancer IP range
-        default: 192.168.31.0/24
+        default: 192.168.40.0/24
 
       cilium_exportPodCIDR:
         description: Export pod CIDR

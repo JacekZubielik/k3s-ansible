@@ -2,23 +2,25 @@
 - name: Pre tasks
   hosts: all
   pre_tasks:
-    - name: Verify Ansible is version 2.11 or above. (If this fails you may need to update Ansible)
-      ansible.builtin.assert:
-        that: ansible_version.full is version_compare('2.11', '>=')
+  - name: Verify Ansible is version 2.11 or above. (If this fails you may need to update Ansible)
+    ansible.builtin.assert:
+      that: ansible_version.full is version_compare('2.11', '>=')
 
 - name: Load environment variables
   hosts: all
   tasks:
-    - name: Include environment variables
-      ansible.builtin.include_vars:
-        file: "{{ playbook_dir }}/../ansible/inventory/{{ env_name }}.env.yml"
+  - name: Include environment variables
+    ansible.builtin.include_vars:
+      file: "{{ playbook_dir }}/../ansible/inventory/{{ env_name }}.env.yml"
   run_once: true
 
-# - name: System configuration
-#   hosts: all
-#   roles:
-#   - apt
-#   # - sysctl
+- name: System configuration
+  hosts: all
+  roles:
+  - role: apt
+    become: true
+  - role: sysctl
+    become: true
 
 # - name: Longhorn utils
 #   hosts: storage_servers
@@ -26,52 +28,45 @@
 #     - role: longhorn_utils
 #       become: true
 
-# - name: Prepare k3s nodes
-#   hosts: k3s_cluster
-#   gather_facts: true
-#   roles:
-#     - role: prereq
-#       become: true
-#     - role: download
-#       become: true
-#     - role: raspberrypi
-#       become: true
+- name: Prepare k3s nodes
+  hosts: k3s_cluster
+  gather_facts: true
+  roles:
+  - role: prereq
+    become: true
+  - role: download
+    become: true
+  - role: raspberrypi
+    become: true
 
-# - name: Setup k3s servers
-#   hosts: master
-#   roles:
-#     - role: k3s_server
-#       become: true
+- name: Setup k3s servers
+  hosts: master
+  roles:
+  - role: k3s_server
+    become: true
 
-# - name: Setup k3s agents
-#   hosts: node
-#   roles:
-#     - role: k3s_agent
-#       become: true
+- name: Setup k3s agents
+  hosts: node
+  roles:
+  - role: k3s_agent
+    become: true
 
-# - name: Configure k3s cluster
-#   hosts: master
-#   roles:
-#     - role: k3s_server_post
-#       become: true
-
-# - name: Storing kubeconfig in the playbook directory
-#   hosts: master
-#   tasks:
-#     - name: Copying kubeconfig from {{ hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname'] }}
-#       ansible.builtin.fetch:
-#         src: "{{ ansible_user_dir }}/.kube/config"
-#         dest: "./target/{{ env_name }}/.kube/config"
-#         flat: true
-#       when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
+- name: Configure k3s cluster
+  hosts: master
+  roles:
+  - role: k3s_server_post
+    become: true
 
 - name: Storing kubeconfig in the playbook directory
   hosts: master
   roles:
-    - role: k3s_kubeconfig
-      become: true
+  - role: k3s_kubeconfig
+    become: true
 
-
+# - name: Cluster configuration
+#   hosts: all
+#   roles:
+#   - k3s
 
 # - name: Longhorn labels and annotations
 #   hosts: master
@@ -83,4 +78,4 @@
   hosts: k3s_cluster
   become: yes
   roles:
-    - containerd
+  - containerd

@@ -14,8 +14,9 @@ argument_specs:
         description: Name of the master group
         default: master
 
-      k3s_token:
-        description: Token used to communicate between masters
+      k3s:
+        token:
+          description: Token used to communicate between masters
 
       systemd_dir:
         description: Path to systemd services

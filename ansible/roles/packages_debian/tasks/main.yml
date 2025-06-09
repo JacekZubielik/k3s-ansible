@@ -1,3 +1,4 @@
 ---
 - name: Update and upgrade Debian packages
   ansible.builtin.include_tasks: packages.yaml
+  tags: packages

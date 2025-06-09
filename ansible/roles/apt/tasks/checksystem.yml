@@ -1,0 +1,124 @@
+- name: "Check system"
+  block:
+    - name: "Check status of qemu-guest-agent"
+      ansible.builtin.systemd:
+        name: qemu-guest-agent
+        state: started
+      register: qga_status
+      changed_when: false
+      check_mode: false
+
+    - name: "Start qemu-guest-agent if it is not running"
+      ansible.builtin.systemd:
+        name: qemu-guest-agent
+        enabled: true
+        state: started
+      when: qga_status.status != 'started'
+
+    - name: "Ensure iscsi_tcp is present in /etc/modules"
+      ansible.builtin.lineinfile:
+        path: /etc/modules
+        line: 'iscsi_tcp'
+        state: present
+      when: "'iscsi_tcp' in ansible_facts.services and ansible_facts.services['iscsi_tcp'].state != 'running'"
+
+    - name: "Remove nfs-common service file"
+      ansible.builtin.file:
+        path: /lib/systemd/system/nfs-common.service
+        state: absent
+
+    - name: "Reload systemd daemon"
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: "Check if nfs-common is installed"
+      ansible.builtin.package:
+        name: nfs-common
+        state: present
+      register: nfs_package
+      check_mode: false
+
+    - name: Check nfs-common service status
+      ansible.builtin.systemd:
+        name: nfs-common
+        state: started
+      register: nfs_service_status
+      changed_when: false
+
+    - name: Debug nfs-common service status
+      ansible.builtin.debug:
+        msg: "nfs-common service is {{ 'started' if nfs_service_status.status == 'started' else 'not started' }}"
+
+    - name: Ensure nfs-common service is started
+      ansible.builtin.systemd:
+        name: nfs-common
+        state: started
+      when: nfs_service_status.status != 'started'
+
+    - name: Check nfs-common service status
+      ansible.builtin.systemd:
+        name: nfs-common
+        state: started
+      register: nfs_service_status
+      changed_when: false
+
+    - name: Debug nfs-common service status
+      ansible.builtin.debug:
+        msg: "nfs-common service is {{ 'started' if nfs_service_status.status == 'started' else 'not started' }}"
+
+    - name: "Load iscsi_tcp kernel module on each node"
+      ansible.builtin.modprobe:
+        name: iscsi_tcp
+        state: present
+      loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
+
+    - name: "Check if iscsi_tcp module is loaded"
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          lsmod | grep -q iscsi_tcp
+      register: iscsi_tcp_loaded
+      failed_when: false
+      changed_when: false
+      check_mode: false
+
+    - name: "Debug iscsi_tcp module status"
+      ansible.builtin.debug:
+        msg: "iscsi_tcp module is {{ 'loaded' if iscsi_tcp_loaded.rc == 0 else 'not loaded' }}"
+
+    - name: "Check if iscsid is installed"
+      ansible.builtin.systemd:
+        name: iscsid
+        state: started
+        enabled: true
+      register: iscsid_status
+      check_mode: false
+
+    - name: "Start the systemd service for iscsid if it is not started"
+      ansible.builtin.systemd:
+        name: iscsid
+        enabled: true
+        state: started
+      when: iscsid_status.status != 'active'
+
+    - name: "Check if a reboot is required"
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required_file
+
+    - name: "Reboot the server if required"
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible for package updates"
+      when: reboot_required_file.stat.exists
+
+    - name: "Autoremove unnecessary packages"
+      ansible.builtin.apt:
+        autoremove: true
+
+  rescue:
+    - name: "Handle any errors in block"
+      ansible.builtin.debug:
+        msg: "An error occurred in the block."

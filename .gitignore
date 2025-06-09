@@ -13,3 +13,5 @@ package-lock.json
 package.json
 /target/dev/.kube/config
 /target/prod/.kube/config
+/ansible/target/prod/.kube/config
+/ansible/target/dev/.kube/config

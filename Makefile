@@ -10,7 +10,6 @@ ifndef ENV_NAME
 ENV_NAME := dev
 endif
 
-# KUBECONFIG_IP := $(shell yq e '.apiserver_endpoint' ansible/inventory/$(ENV_NAME).env.yml)
 KUBECONFIG_IP := $(shell grep 'apiserver_endpoint:' ansible/inventory/$(ENV_NAME).env.yml | cut -d'"' -f2)
 
 ifndef INVENTORY
@@ -31,7 +30,7 @@ all:
 all: deps deploy help
 
 .PHONY: deps
-deploy-requirements: ## Deploy requirements.
+deps: ## Deploy requirements.
 	echo "Deploy requirements ..."
 	ansible-galaxy install -r ./ansible/collections/requirements.yml
 

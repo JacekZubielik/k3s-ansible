@@ -1,0 +1,62 @@
+---
+- name: "Update and upgrade Debian packages"
+  block:
+    - name: "Gather service facts"
+      ansible.builtin.service_facts:
+
+    - name: "Ensure /etc/apt/apt.conf.d/00aptproxy exists with correct content"
+      ansible.builtin.template:
+        src: apt-cacher.conf.j2
+        dest: /etc/apt/apt.conf.d/00aptproxy
+        mode: '0644'
+      register: aptproxy_check
+      loop: "{{ hostvars[inventory_hostname]['groups']['node'] }}"
+
+    - name: "Ensure non-free repository is enabled"
+      ansible.builtin.lineinfile:
+        path: /etc/apt/sources.list
+        line: "deb http://deb.debian.org/debian/ bookworm main contrib non-free
+          non-free-firmware"
+        state: present
+
+    - name: "Update apt repository cache"
+      ansible.builtin.apt:
+        update_cache: true
+
+    # - name: "Install required packages"
+    #   ansible.builtin.apt:
+    #     pkg:
+    #       - cryptsetup
+    #       - dnsutils
+    #       - firmware-misc-nonfree
+    #       - iotop
+    #       - iperf
+    #       - iptables
+    #       - jq
+    #       - mc
+    #       - neofetch
+    #       - nfs-common
+    #       - nmap
+    #       - open-iscsi
+    #       - parted
+    #       - qemu-guest-agent
+    #       - util-linux
+    #       - vim
+    #     state: present
+
+- name: "Update and upgrade Debian packages"
+  block:
+    - name: "Ensure neofetch exists with correct content"
+      ansible.builtin.lineinfile:
+        path: /home/ansible/.bashrc
+        line: "neofetch"
+        state: present
+
+    - name: "Upgrade all packages to the latest version"
+      ansible.builtin.apt:
+        upgrade: true
+
+  rescue:
+    - name: "Handle any errors in block"
+      ansible.builtin.debug:
+        msg: "An error occurred in the block."

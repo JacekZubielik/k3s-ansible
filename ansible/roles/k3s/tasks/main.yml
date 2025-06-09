@@ -1,0 +1,141 @@
+---
+# - name: Check latest k3s release
+#   ansible.builtin.uri:
+#     url: https://api.github.com/repos/k3s-io/k3s/releases/latest
+#     method: GET
+#     body_format: json
+#     status_code: [200]
+#     return_content: true
+#     headers:
+#       Content-Type: application/json
+#   register: latest
+#   run_once: true
+#   when: k3s.latest is not defined
+
+# - set_fact:
+#     cacheable: true
+#     k3s:
+#       latest: "{{ latest.json.name | default(k3s.latest) }}"
+#   when: latest.json.name is defined
+
+# - name: Notify if new release is available
+#   debug: msg="New release is available -> {{ k3s.latest }}"
+#   when: k3s.latest != k3s.version
+#   run_once: true
+
+# - name: Check currently installed release
+#   shell: |
+#     k3s --version | head -n 1 | awk '{ print $3 }' || exit 0
+#   register: version
+#   changed_when: false
+
+# - name: Deploy release {{ k3s.version }}
+#   shell: |
+#     curl -sfL https://get.k3s.io \
+#     | K3S_TOKEN={{ k3s.token }} sh -s - server \
+#     --server https://{{ inventory_hostname }}:6443
+#   register: install
+#   when: version.stdout != k3s.version
+#   environment:
+#     INSTALL_K3S_VERSION: "{{ k3s.version }}"
+#   throttle: 1
+
+# - name: Release deployment results
+#   debug: msg="{{ install }}"
+#   when: install.changed
+
+- name: Configure local-path provider
+  k8s:
+    state: patched
+    definition: "{{ lookup('template', 'templates/local-path.yml.j2') | from_yaml }}"
+    wait:  true
+    # validate:
+    #   strict: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Configure local-path-data storage class
+  k8s:
+    state: present
+    force: true
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        annotations:
+          defaultVolumeType: local
+        name: local-path-data
+      provisioner: rancher.io/local-path
+      reclaimPolicy: Delete
+      volumeBindingMode: WaitForFirstConsumer
+      parameters:
+        nodePath: /data/k8s/apps
+        pathPattern: "{% raw %}{{ .PVC.Namespace }}/{{ .PVC.Name }}{% endraw %}"
+    wait:  true
+    # validate:
+    #   strict: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Configure local-path-gluster storage class
+  k8s:
+    state: present
+    force: true
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        annotations:
+          defaultVolumeType: local
+        name: local-path-gluster
+      provisioner: rancher.io/local-path
+      reclaimPolicy: Delete
+      volumeBindingMode: WaitForFirstConsumer
+      parameters:
+        nodePath: /mnt/gluster/cluster-data/apps
+        pathPattern: "{% raw %}{{ .PVC.Namespace }}/{{ .PVC.Name }}{% endraw %}"
+    wait:  true
+    # validate:
+    #   strict: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Read manifest file
+  slurp:
+    path: /var/lib/rancher/k3s/server/manifests/local-storage.yaml
+  register: manifest
+
+- name: Prepare configuration
+  set_fact:
+    modified: |
+      {% set data = manifest['content'] | b64decode | from_yaml_all %}
+      {% for i in data %}
+      ---
+      {% if i.metadata.name == 'local-path-config' %}
+      {% set replaced = object | combine(i) %}
+      {{ replaced | to_nice_yaml }}
+      {% else %}
+      {{ i | to_nice_yaml }}
+      {% endif %}
+      {% endfor %}
+  vars:
+    object:
+      data:
+        config.json: |-
+          {
+            "nodePathMap":[
+              {
+                "node":"DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                "paths":[
+                  {% for i in k3s.storage.paths %}
+                  "{{ i }}"{{ ',' if i != (k3s.storage.paths | last) }}
+                  {% endfor %}
+                ]
+              }
+            ]
+          }
+
+- name: Update manifest file
+  copy:
+    content: '{{ modified }}'
+    dest: /var/lib/rancher/k3s/server/manifests/local-storage.yaml
