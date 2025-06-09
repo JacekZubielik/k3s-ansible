@@ -1,0 +1,3 @@
+---
+- name: Patch kubeconfig with env_name template
+  ansible.builtin.include_tasks: patch_kubeconfig.yml

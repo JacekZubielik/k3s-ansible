@@ -14,29 +14,11 @@
         file: "{{ playbook_dir }}/../ansible/inventory/{{ env_name }}.env.yml"
   run_once: true
 
-
-# - name: Update and upgrade Debian packages
-#   hosts: k3s_cluster
+# - name: System configuration
+#   hosts: all
 #   roles:
-#     - role: packages_debian
-#       become: true
-
-- name: System configuration
-  hosts: all
-  roles:
-  - apt
-  # - sysctl
-
-# - name: Install packages
-#   apt:
-#     pkg: "{{ item }}"
-#     state: present
-#     update_cache: true
-#   environment:
-#     DEBIAN_FRONTEND: noninteractive
-#   with_items:
-#   - glusterfs-server
-
+#   - apt
+#   # - sysctl
 
 # - name: Longhorn utils
 #   hosts: storage_servers
@@ -44,44 +26,51 @@
 #     - role: longhorn_utils
 #       become: true
 
-- name: Prepare k3s nodes
-  hosts: k3s_cluster
-  gather_facts: true
-  roles:
-    - role: prereq
-      become: true
-    - role: download
-      become: true
-    - role: raspberrypi
-      become: true
+# - name: Prepare k3s nodes
+#   hosts: k3s_cluster
+#   gather_facts: true
+#   roles:
+#     - role: prereq
+#       become: true
+#     - role: download
+#       become: true
+#     - role: raspberrypi
+#       become: true
 
-- name: Setup k3s servers
-  hosts: master
-  roles:
-    - role: k3s_server
-      become: true
+# - name: Setup k3s servers
+#   hosts: master
+#   roles:
+#     - role: k3s_server
+#       become: true
 
-- name: Setup k3s agents
-  hosts: node
-  roles:
-    - role: k3s_agent
-      become: true
+# - name: Setup k3s agents
+#   hosts: node
+#   roles:
+#     - role: k3s_agent
+#       become: true
 
-- name: Configure k3s cluster
-  hosts: master
-  roles:
-    - role: k3s_server_post
-      become: true
+# - name: Configure k3s cluster
+#   hosts: master
+#   roles:
+#     - role: k3s_server_post
+#       become: true
+
+# - name: Storing kubeconfig in the playbook directory
+#   hosts: master
+#   tasks:
+#     - name: Copying kubeconfig from {{ hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname'] }}
+#       ansible.builtin.fetch:
+#         src: "{{ ansible_user_dir }}/.kube/config"
+#         dest: "./target/{{ env_name }}/.kube/config"
+#         flat: true
+#       when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
 
 - name: Storing kubeconfig in the playbook directory
   hosts: master
-  tasks:
-    - name: Copying kubeconfig from {{ hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname'] }}
-      ansible.builtin.fetch:
-        src: "{{ ansible_user_dir }}/.kube/config"
-        dest: "./target/{{ env_name }}/.kube/config"
-        flat: true
-      when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
+  roles:
+    - role: k3s_kubeconfig
+      become: true
+
 
 
 # - name: Longhorn labels and annotations

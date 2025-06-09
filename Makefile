@@ -42,9 +42,9 @@ deploy: ## Deploy cluster for specified ENV_NAME.
 
 .PHONY: kubeconfig
 kubeconfig: ## Copy 'kubeconfig' for specified ENV_NAME.
-	echo "Copy kubeconfig to target/$(ENV_NAME)/.kube/config ..."
-	scp ansible@$(KUBECONFIG_IP):~/.kube/config target/$(ENV_NAME)/.kube/config
-	kubectl --kubeconfig=target/$(ENV_NAME)/.kube/config get nodes --show-kind
+	echo "Copy kubeconfig to ansible/target/$(ENV_NAME)/.kube/config ..."
+	scp ansible@$(KUBECONFIG_IP):~/.kube/config ansible/target/$(ENV_NAME)/.kube/config
+	kubectl --kubeconfig=ansible/target/$(ENV_NAME)/.kube/config get nodes --show-kind
 
 .PHONY: reboot
 reboot: ## Reboot cluster for specified ENV_NAME.
