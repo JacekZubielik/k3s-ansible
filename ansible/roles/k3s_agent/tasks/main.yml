@@ -1,4 +1,24 @@
 ---
+# - name: Manage k3s service
+#   ansible.builtin.service:
+#     name: k3s-agent
+#     state: started
+
+# - name: Loguj stan przed uruchomieniem
+#   ansible.builtin.command: systemctl status k3s-agent
+#   register: service_status
+# - name: Wyświetl stan usługi
+#   ansible.builtin.debug:
+#     var: service_status.stdout_lines
+
+# - name: Sprawdź, czy usługa K3s działa
+#   ansible.builtin.command: systemctl is-active k3s-agent
+#   register: k3s_status
+#   failed_when: k3s_status.stdout != "active"
+# - name: Raportuj stan
+#   ansible.builtin.debug:
+#     msg: "Stan usługi K3s: {{ k3s_status.stdout }}"
+
 - name: Configure the k3s service
   ansible.builtin.template:
     src: k3s.service.j2
@@ -13,3 +33,4 @@
     daemon_reload: true
     state: restarted
     enabled: true
+  timeout: 30

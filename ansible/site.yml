@@ -5,19 +5,32 @@
     - name: Verify Ansible is version 2.11 or above. (If this fails you may need to update Ansible)
       ansible.builtin.assert:
         that: ansible_version.full is version_compare('2.11', '>=')
-        msg: >
-          "Ansible is out of date. See here for more info: https://docs.technotim.live/posts/ansible-automation/"
 
-- name: Update and upgrade Debian packages
-  hosts: k3s_cluster
+- name: Load environment variables
+  hosts: all
+  tasks:
+    - name: Include environment variables
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../ansible/inventory/{{ env_name }}.env.yml"
+  run_once: true
+
+
+# - name: Update and upgrade Debian packages
+#   hosts: k3s_cluster
+#   roles:
+#     - role: packages_debian
+#       become: true
+
+- name: System configuration
+  hosts: all
   roles:
-    - role: packages_debian
-      become: true
+  - apt
+  # - sysctl
 
 # - name: Install packages
 #   apt:
-#     pkg:          "{{ item }}"
-#     state:        present
+#     pkg: "{{ item }}"
+#     state: present
 #     update_cache: true
 #   environment:
 #     DEBIAN_FRONTEND: noninteractive
@@ -66,26 +79,16 @@
     - name: Copying kubeconfig from {{ hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname'] }}
       ansible.builtin.fetch:
         src: "{{ ansible_user_dir }}/.kube/config"
-        dest: ./kubeconfig
+        dest: "./target/{{ env_name }}/.kube/config"
         flat: true
       when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
 
-# - name: Storing kubeconfig in the playbook directory
+
+# - name: Longhorn labels and annotations
 #   hosts: master
-#   tasks:
-#     - name: Copying kubeconfig from {{ hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname'] }}
-#       ansible.builtin.fetch:
-#         src: "{{ ansible_user_dir }}/.kube/config"
-#         dest: "./target/{{ env_name }}/.kube/config"
-#         flat: true
-#       when: ansible_hostname == hostvars[groups[group_name_master | default('master')][0]]['ansible_hostname']
-
-
-- name: Longhorn labels and annotations
-  hosts: master
-  roles:
-    - role: longhorn_labels
-      become: true
+#   roles:
+#     - role: longhorn_labels
+#       become: true
 
 - name: Containerd utils
   hosts: k3s_cluster

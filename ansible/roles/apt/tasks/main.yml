@@ -1,0 +1,8 @@
+---
+- name: Install packages
+  apt:
+    pkg:   "{{ item }}"
+    state: present
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  with_items: "{{ packages }}"
